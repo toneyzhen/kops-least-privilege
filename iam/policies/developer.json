@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WhoAmIOnly",
+      "Effect": "Allow",
+      "Action": "sts:GetCallerIdentity",
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyEverythingElseExplicitly",
+      "Effect": "Deny",
+      "NotAction": "sts:GetCallerIdentity",
+      "Resource": "*"
+    }
+  ]
+}

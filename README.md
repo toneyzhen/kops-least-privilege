@@ -238,7 +238,8 @@ Both ask for confirmation unless you pass `--yes`.
   `permissionsBoundary` in `kops/cluster.yaml`.
 - **The OIDC discovery bucket is public by design.** It holds only the
   discovery document and JWKS public keys, and the bucket policy limits public
-  read to that prefix.
+  read to that prefix. If your kOps version insists on a public-read ACL
+  instead, re-run bootstrap with `OIDC_ACCESS_MODE=acl`.
 - **Validated offline, not against every kOps release.** CI checks that every
   policy and manifest renders and parses, and shellchecks all scripts. Settings
   that couldn't be confirmed against kOps docs are marked `NOTE (unverified)` in

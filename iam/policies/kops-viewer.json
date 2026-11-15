@@ -1,0 +1,48 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListStateStore",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${KOPS_STATE_BUCKET}",
+      "Condition": {
+        "StringLike": {"s3:prefix": ["", "${CLUSTER_NAME}", "${CLUSTER_NAME}/*"]}
+      }
+    },
+    {
+      "Sid": "ReadClusterAndInstanceGroupSpecsOnly",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": [
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/${CLUSTER_NAME}/config",
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/${CLUSTER_NAME}/cluster.spec",
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/${CLUSTER_NAME}/cluster.completed.spec",
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/${CLUSTER_NAME}/instancegroup/*"
+      ]
+    },
+    {
+      "Sid": "ReadOnlyDescribe",
+      "Effect": "Allow",
+      "Action": ["ec2:Describe*", "autoscaling:Describe*", "elasticloadbalancing:Describe*"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyKeyMaterialAndSecrets",
+      "Effect": "Deny",
+      "Action": ["s3:GetObject", "s3:GetObjectVersion", "s3:PutObject", "s3:DeleteObject", "s3:DeleteObjectVersion"],
+      "Resource": [
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/*/pki/private/*",
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/*/pki/ssh/*",
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/*/secrets/*",
+        "arn:aws:s3:::${KOPS_STATE_BUCKET}/*/backups/*"
+      ]
+    },
+    {
+      "Sid": "DenyAnyWriteToStateStore",
+      "Effect": "Deny",
+      "Action": ["s3:PutObject", "s3:DeleteObject", "s3:DeleteObjectVersion", "s3:PutBucket*", "s3:DeleteBucket*"],
+      "Resource": ["arn:aws:s3:::${KOPS_STATE_BUCKET}", "arn:aws:s3:::${KOPS_STATE_BUCKET}/*"]
+    }
+  ]
+}
