@@ -1,0 +1,5 @@
+config.env
+.rendered/
+*.kubeconfig
+.terraform/
+.DS_Store
