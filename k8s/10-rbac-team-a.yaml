@@ -1,0 +1,80 @@
+# Least-privilege RBAC for the team-a developer workspace.
+#
+# The kops cluster spec maps the AWS IAM role lp-demo-developer to
+#   username: developer:{{SessionName}}   groups: [team-a-developers]
+# so every human who assumes that role lands in this group.
+---
+# The auto-created "default" ServiceAccount gets no API token. Pods that do not
+# ask for a specific SA would otherwise carry a credential they never use.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: team-a
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: team-a-developer
+  namespace: team-a
+rules:
+  # Day-to-day workload management: full CRUD on the objects a developer ships.
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Logs are read-only by nature.
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
+
+  # ---------------------------------------------------------------------------
+  # Deliberately NOT granted (RBAC is additive; absence of a rule = denied):
+  #
+  # secrets (any verb)
+  #   Reading secrets in a namespace exposes every credential there, including
+  #   any ServiceAccount token Secret -> impersonate that SA. Even "list"
+  #   returns full secret contents.
+  #
+  # pods/exec, pods/attach, pods/portforward
+  #   exec into a pod = run code with that pod's identity (its SA token, its
+  #   mounted secrets, its IRSA AWS role). Closes "exec into a privileged pod".
+  #
+  # roles, rolebindings (any verb, incl. bind/escalate)
+  #   Letting a user edit RBAC lets them grant themselves anything the API
+  #   allows -> self-escalation. Admins manage RBAC, via this file.
+  #
+  # serviceaccounts/token (create)
+  #   TokenRequest mints a fresh token for any SA in the namespace.
+  #
+  # serviceaccounts (create/update)
+  #   Not needed; SAs are provisioned by admins/GitOps.
+  #
+  # KNOWN RESIDUAL PATH - "create pods" / "create deployments":
+  #   Anyone who can create pods in a namespace can set spec.serviceAccountName
+  #   to ANY SA in that namespace and so borrow its permissions (and, if
+  #   annotated for IRSA, its AWS role). RBAC cannot restrict that. We close
+  #   it by construction instead: team-a contains NO privileged ServiceAccounts.
+  #   Only "default" exists, it has automountServiceAccountToken=false, and it
+  #   is bound to no Role, so a pod using it has nothing worth borrowing. The
+  #   IRSA-enabled s3-reader SA lives in a different namespace (demo-app),
+  #   which team-a developers cannot touch. Pod Security "restricted" further
+  #   blocks privileged/hostPath/hostNetwork pods that would let them escape.
+  # ---------------------------------------------------------------------------
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: team-a-developers
+  namespace: team-a
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: team-a-developers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: team-a-developer

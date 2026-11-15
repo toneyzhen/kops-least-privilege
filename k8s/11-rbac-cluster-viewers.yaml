@@ -1,0 +1,41 @@
+# Read-only, non-sensitive cluster visibility for the AWS role lp-demo-kops-viewer
+# (mapped by the kops spec to group "cluster-viewers").
+#
+# Kubernetes ships a built-in ClusterRole "view" that is a decent alternative
+# (it already excludes secrets and roles). We enumerate our own so the exact
+# grant is visible in one place and cannot widen when Kubernetes or an addon
+# adds resources to the aggregated "view" role.
+#
+# Intentionally omitted:
+#   secrets      - credentials.
+#   configmaps   - often hold connection strings / tokens by accident.
+#   pods/log     - logs frequently contain secrets and PII.
+#   pods/exec    - code execution.
+#   roles/bindings - reconnaissance of who can do what is useful to attackers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-viewer
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints", "nodes", "namespaces", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-viewers
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: cluster-viewers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-viewer
