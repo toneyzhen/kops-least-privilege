@@ -1,0 +1,260 @@
+# kops Cluster + InstanceGroup manifests, rendered with envsubst by
+# scripts/02-create-cluster.sh (only the variables listed in that script are
+# substituted). Schema: kops.k8s.io/v1alpha2. Field names were checked against
+# pkg/apis/kops/v1alpha2 in github.com/kubernetes/kops (master) and the docs at
+# kops.sigs.k8s.io. Tested-against assumption: kOps 1.34/1.35 with Kubernetes 1.33/1.34.
+#
+# Variables: CLUSTER_NAME KOPS_STATE_STORE KOPS_OIDC_BUCKET DEMO_DATA_BUCKET
+#            AWS_ACCOUNT_ID AWS_REGION ZONE KUBERNETES_VERSION ADMIN_CIDR NAME_PREFIX
+apiVersion: kops.k8s.io/v1alpha2
+kind: Cluster
+metadata:
+  name: ${CLUSTER_NAME}
+spec:
+  cloudProvider: aws
+  kubernetesVersion: ${KUBERNETES_VERSION}
+  configBase: ${KOPS_STATE_STORE}/${CLUSTER_NAME}
+
+  # --- Tags ----------------------------------------------------------------
+  # kops automatically tags every resource it creates with
+  # kubernetes.io/cluster/${CLUSTER_NAME}=owned and KubernetesCluster=${CLUSTER_NAME}.
+  # The IAM layer's tag-based conditions (scoping lp-demo-kops-admin to this
+  # cluster's resources) rely on these tags; nothing extra is needed here.
+  # cloudLabels below only add informational tags.
+  cloudLabels:
+    project: ${NAME_PREFIX}
+    purpose: least-privilege-demo
+
+  # --- Network: private topology -------------------------------------------
+  # WHY: kops default is a public topology (nodes get public IPs). Private
+  # subnets mean control-plane and worker instances have no inbound path from
+  # the internet at all; egress goes through a NAT gateway in the utility
+  # (public) subnet. Single zone to keep the demo cheap; add zones for HA.
+  networkCIDR: 10.0.0.0/16
+  topology:
+    masters: private
+    nodes: private
+    # No bastion on purpose: a bastion is an extra internet-facing host.
+    # Node access without SSH: SSM Session Manager would work, but kops does not
+    # attach AmazonSSMManagedInstanceCore, so it would need extra IAM on the
+    # instance role (additionalPolicies) - which is MORE privilege, so this demo
+    # does not do it. Debug with `kubectl debug node/...` or the audit log.
+  subnets:
+    - name: private-${ZONE}
+      zone: ${ZONE}
+      cidr: 10.0.32.0/19
+      type: Private
+      # no egress override -> kops creates a NAT gateway for this subnet
+    - name: utility-${ZONE}
+      zone: ${ZONE}
+      cidr: 10.0.0.0/22
+      type: Utility
+
+  # --- API / SSH exposure ---------------------------------------------------
+  # WHY: gossip DNS (.k8s.local) means no Route53, so the API is reached through
+  # a public NLB (an internal LB would be unreachable from the operator's
+  # laptop). Exposure is limited to the operator's /32 instead. The script
+  # refuses 0.0.0.0/0 unless ALLOW_OPEN_API=true (kops default is 0.0.0.0/0).
+  api:
+    loadBalancer:
+      type: Public
+      class: Network
+  kubernetesApiAccess:
+    - ${ADMIN_CIDR}
+  # WHY: kops default opens SSH (22) to 0.0.0.0/0 when sshAccess is set by the
+  # CLI. An empty list means no SSH security-group rule is created at all.
+  # NOTE (unverified): kops accepts an empty/omitted sshAccess for private
+  # topology with no bastion; if validation complains, set it to a
+  # non-routable placeholder such as 127.0.0.1/32.
+  sshAccess: []
+  # WHY: "" = instances are launched without an EC2 key pair, so there is no
+  # long-lived SSH credential to steal. (Documented in kops cluster_spec.md.)
+  sshKeyName: ""
+
+  # --- Authentication / authorization --------------------------------------
+  # RBAC only (kops default is RBAC; stated explicitly so nobody flips it).
+  authorization:
+    rbac: {}
+  # aws-iam-authenticator: humans authenticate with their AWS IAM role (STS
+  # presigned token) instead of shared client certificates or static tokens.
+  # backendMode CRD lets us declare mappings inline here (kops docs: inline
+  # identityMappings are CRD-only, authenticator >= 0.5.0 - kops ships a newer
+  # image). clusterID is the value clients pass as `-i`/x-k8s-aws-id and must be
+  # the same string in their kubeconfig exec args; it defaults to the cluster
+  # name, set explicitly here for clarity.
+  # {{SessionName}} is expanded by the authenticator at login time to the
+  # role-session-name, so audit logs show developer:<who>, not a shared name.
+  authentication:
+    aws:
+      backendMode: CRD
+      clusterID: ${CLUSTER_NAME}
+      identityMappings:
+        - arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/${NAME_PREFIX}-developer
+          username: "developer:{{SessionName}}"
+          groups:
+            - team-a-developers
+        - arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/${NAME_PREFIX}-kops-viewer
+          username: "viewer:{{SessionName}}"
+          groups:
+            - cluster-viewers
+      # NOTE: lp-demo-kops-admin is deliberately NOT mapped. Cluster-admin comes
+      # only from the short-lived kops admin certificate (kops export
+      # kubeconfig --admin=1h). The k8s layer must bind RBAC to the groups above.
+
+  # --- IAM: IRSA and a minimal node role -----------------------------------
+  # Needed for IRSA: publishes the cluster's OIDC discovery document + JWKS to a
+  # publicly readable S3 prefix and registers an IAM OIDC provider, so STS can
+  # validate service-account tokens. Works with gossip clusters because the
+  # issuer is the S3 URL, not a cluster DNS name.
+  serviceAccountIssuerDiscovery:
+    discoveryStore: s3://${KOPS_OIDC_BUCKET}/${CLUSTER_NAME}/discovery
+    enableAWSOIDCProvider: true
+  # The EKS pod-identity-webhook mutates pods (injects the projected token and
+  # AWS_ROLE_ARN / AWS_WEB_IDENTITY_TOKEN_FILE env) for every ServiceAccount listed
+  # in serviceAccountExternalPermissions below. kops docs (addons.md): the
+  # eks.amazonaws.com/role-arn annotation is therefore NOT needed on the SA.
+  # The webhook needs cert-manager for its serving certificate.
+  certManager:
+    enabled: true
+  podIdentityWebhook:
+    enabled: true
+  iam:
+    legacy: false
+    # WHY: default (false) already omits ECR read on nodes; stated explicitly.
+    # Pods pull from public registries only; add ECR per-service later if needed.
+    allowContainerRegistry: false
+    # Optionally cap the roles kops creates with a permissions boundary:
+    # permissionsBoundary: arn:aws:iam::${AWS_ACCOUNT_ID}:policy/${NAME_PREFIX}-boundary
+    # WHY: with this on, kops addons (aws-cloud-controller-manager, EBS CSI,
+    # cluster-autoscaler, dns-controller...) get their OWN IAM roles via IRSA and
+    # the instance profiles lose those permissions. A compromised pod on a node
+    # can no longer inherit "create volumes / modify load balancers / etc." from
+    # the node role. See docs/kops.md for before/after.
+    useServiceAccountExternalPermissions: true
+    serviceAccountExternalPermissions:
+      # Demo workload: may read ONLY objects under allowed/ in the demo bucket
+      # and list only that prefix. Everything else in the bucket is denied by
+      # default. Role is assumed by serviceaccount demo-app/s3-reader only.
+      - name: s3-reader
+        namespace: demo-app
+        aws:
+          inlinePolicy: |-
+            [
+              {
+                "Effect": "Allow",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::${DEMO_DATA_BUCKET}/allowed/*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": "s3:ListBucket",
+                "Resource": "arn:aws:s3:::${DEMO_DATA_BUCKET}",
+                "Condition": {
+                  "StringLike": { "s3:prefix": "allowed/*" }
+                }
+              }
+            ]
+
+  # --- Encryption at rest (Kubernetes Secrets) -----------------------------
+  # WHY: without it Secrets are stored base64 (plaintext) in etcd. kops reads
+  # the EncryptionConfiguration from the state store secret created by
+  # `kops create secret encryptionconfig` (done by 02-create-cluster.sh BEFORE
+  # `kops update cluster`). Source template: kops/encryption-config.yaml.
+  encryptionConfig: true
+
+  # --- API server / kubelet hardening --------------------------------------
+  kubeAPIServer:
+    # WHY: reject unauthenticated requests (system:anonymous).
+    anonymousAuth: false
+    # WHY: audit trail of who did what; shows developer:<session> usernames.
+    auditLogPath: /var/log/kube-apiserver-audit.log
+    auditLogMaxAge: 10
+    auditLogMaxBackups: 3
+    auditLogMaxSize: 100
+    auditPolicyFile: /etc/kubernetes/audit/policy-config.yaml
+  kubelet:
+    # WHY: kubelet API (10250) must not answer anonymous requests.
+    anonymousAuth: false
+    authorizationMode: Webhook
+    authenticationTokenWebhook: true
+  fileAssets:
+    - name: audit-policy-config
+      path: /etc/kubernetes/audit/policy-config.yaml
+      roles:
+        - ControlPlane
+      content: |
+        apiVersion: audit.k8s.io/v1
+        kind: Policy
+        omitStages: ["RequestReceived"]
+        rules:
+          # Never log Secret/ConfigMap payloads, only who touched them.
+          - level: Metadata
+            resources:
+              - group: ""
+                resources: ["secrets", "configmaps", "serviceaccounts/token"]
+          - level: Metadata
+
+  # CNI that enforces NetworkPolicy (needed by the k8s layer's policies).
+  networking:
+    cilium: {}
+
+  # --- etcd -----------------------------------------------------------------
+  # WHY: kops default does not force EBS encryption on etcd volumes. Secrets
+  # (even with encryptionConfig) and all cluster state live here.
+  etcdClusters:
+    - name: main
+      provider: Manager
+      etcdMembers:
+        - name: a
+          instanceGroup: control-plane-${ZONE}
+          encryptedVolume: true
+    - name: events
+      provider: Manager
+      etcdMembers:
+        - name: a
+          instanceGroup: control-plane-${ZONE}
+          encryptedVolume: true
+---
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  name: control-plane-${ZONE}
+  labels:
+    kops.k8s.io/cluster: ${CLUSTER_NAME}
+spec:
+  role: ControlPlane
+  machineType: t3.medium
+  minSize: 1
+  maxSize: 1
+  subnets:
+    - private-${ZONE}
+  # WHY: encrypt the root EBS volume at rest (explicit so a default change or a
+  # copy/paste into another cluster cannot silently leave it unencrypted).
+  rootVolumeEncryption: true
+  # WHY: IMDSv2 only (session token required) + hop limit 1. A pod's traffic
+  # to 169.254.169.254 takes an extra network hop through the node, so with
+  # limit 1 the response never reaches the pod: pods cannot steal the node's
+  # instance-profile credentials via SSRF. Host-network system pods still can.
+  instanceMetadata:
+    httpTokens: required
+    httpPutResponseHopLimit: 1
+---
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  name: nodes-${ZONE}
+  labels:
+    kops.k8s.io/cluster: ${CLUSTER_NAME}
+spec:
+  role: Node
+  machineType: t3.medium
+  minSize: 2
+  maxSize: 2
+  subnets:
+    - private-${ZONE}
+  rootVolumeEncryption: true
+  # Same IMDS hardening as control plane - this is the group that runs
+  # untrusted-ish workloads, so it matters most here.
+  instanceMetadata:
+    httpTokens: required
+    httpPutResponseHopLimit: 1
