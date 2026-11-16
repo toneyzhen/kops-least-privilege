@@ -74,6 +74,7 @@
   color-scheme: dark;
 }
 
+
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -81,57 +82,54 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.5;
 }
 .wrap {
   max-width: 1080px;
   margin: 0 auto;
-  padding-block: 40px 64px;
+  padding-block: 14px 28px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.prose { max-width: 68ch; }
 h1, h2, h3 { font-family: var(--font-head); line-height: 1.2; margin: 0; }
-h1 { font-size: clamp(2rem, 6vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
-h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
-h3 { font-size: 1.1rem; font-weight: 700; }
-p { margin: 0 0 14px; }
+h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+p { margin: 0 0 10px; }
 a { color: var(--accent); }
-section { margin-top: 56px; }
-.lead { font-size: 1.1rem; }
+section { margin-top: 20px; }
 .muted { color: var(--muted); }
-.small { font-size: 0.92rem; }
-.step-label { font-family: var(--font-head); font-weight: 500; color: var(--accent); font-size: 0.9rem; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+.small { font-size: 0.88rem; }
 
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
-.box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
-.box > :last-child { margin-bottom: 0; }
+header { display: block; }
+.intro { margin: 4px 0 0; color: var(--muted); font-size: 0.95rem; line-height: 1.45; }
 
-details { margin-top: 10px; }
-details > summary { cursor: pointer; font-weight: 600; color: var(--accent); min-height: 44px; display: flex; align-items: center; }
-details > summary::marker { color: var(--accent); }
+/* folds */
+.fold { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.fold > summary { display: list-item; margin-left: 30px; padding: 10px 14px 10px 0; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--accent); }
+.fold > summary::marker { color: var(--accent); }
+.fold-body { padding: 0 14px 14px; }
+.fold-body > :last-child { margin-bottom: 0; }
 pre {
-  margin: 0 0 8px; padding: 12px 14px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
-  overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5; max-width: 100%;
+  margin: 0 0 4px; padding: 8px 10px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  overflow-x: auto; font-family: var(--font-mono); font-size: 0.74rem; line-height: 1.45; max-width: 100%;
 }
 pre code { font-family: inherit; }
-.tech h4 { font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; margin: 8px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* main tool */
-.tool { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 18px; align-items: start; }
+.tool { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 12px; align-items: start; }
 .col { min-width: 0; }
-.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
-.diagram { display: block; width: 100%; max-width: 100%; height: auto; }
-.cap { margin: 4px 4px 0; font-size: 0.88rem; color: var(--muted); }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px; }
+.diagram { display: block; width: 100%; max-width: 340px; margin: 0 auto; height: auto; }
 
 .ring-bg { fill: var(--surface); }
 .ring { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 4; }
-.ring-name { font: 600 10px var(--font-body); fill: var(--muted); text-anchor: middle; letter-spacing: 0.02em; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.ring-name { font: 600 12px var(--font-body); fill: var(--muted); text-anchor: middle; letter-spacing: 0.01em; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 .blast { fill: var(--bad); fill-opacity: 0.15; stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 5 3; }
 .atk { fill: var(--bad); stroke: var(--surface); stroke-width: 2; }
-.atk-t { font: 700 9px var(--font-body); fill: var(--bad-fg); text-anchor: middle; }
+.atk-t { font: 700 11.5px var(--font-body); fill: var(--bad-fg); text-anchor: middle; }
 .node { cursor: pointer; outline: none; }
 .node .hit { fill: transparent; }
 .node .focus-ring { fill: none; stroke: none; stroke-width: 3; }
@@ -142,136 +140,139 @@ pre code { font-family: inherit; }
 .node .gx, .node .gv { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: none; }
 .node .gx { stroke: var(--bad-fg); }
 .node .gv { stroke: var(--ok); }
-.node .nlabel { font: 500 11px var(--font-body); fill: var(--muted); text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; stroke-linejoin: round; }
+.node .nlabel { font: 500 12.5px var(--font-body); fill: var(--muted); text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; stroke-linejoin: round; }
 .node.safe .gv { display: inline; }
 .node.reached .dot { fill: var(--bad); stroke: var(--bad); }
 .node.reached .gx { display: inline; }
 .node.reached .nlabel { font-weight: 700; fill: var(--bad); }
 
-.readout { margin-top: 12px; }
-.score { font-family: var(--font-head); font-weight: 700; font-size: 1.25rem; }
-.meter { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; margin: 8px 0 10px; }
-.meter i { height: 14px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); }
+.readout { margin-top: 8px; }
+.score { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; }
+.meter { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; margin: 4px 0 6px; }
+.meter i { height: 8px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); }
 .meter i.on { background: var(--bad); border-color: var(--bad); }
-.job { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); font-weight: 600; }
+.job { display: flex; align-items: center; min-height: 44px; padding: 4px 12px; border-radius: 10px; border: 1px solid var(--line); font-weight: 600; font-size: 0.85rem; line-height: 1.3; }
 .job.ok { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
 .job.bad { background: var(--bad-bg); border-color: var(--bad-line); color: var(--bad); }
-.hint { margin: 10px 0 0; color: var(--muted); font-size: 0.95rem; }
-.toast { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border-left: 5px solid var(--accent); font-size: 0.95rem; min-height: 44px; }
+.hint { margin: 4px 0 0; min-height: 1.3em; color: var(--muted); font-size: 0.85rem; line-height: 1.3; }
+.toast { margin: 6px 0 0; padding: 6px 12px; border-radius: 10px; background: var(--surface-2); border-left: 5px solid var(--accent); font-size: 0.85rem; line-height: 1.35; min-height: 84px; overflow-y: auto; }
 .toast.up { border-left-color: var(--bad); }
 .toast.down { border-left-color: var(--ok); }
-.panel { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.96rem; }
-.panel > :last-child { margin-bottom: 0; }
-.panel h3 { margin-bottom: 6px; }
-.chip { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; margin-left: 6px; vertical-align: middle; border: 1px solid var(--line); }
+.toast p { margin: 0 0 3px; }
+.toast > :last-child { margin-bottom: 0; }
+.chip { display: inline-block; padding: 0 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; margin-left: 6px; vertical-align: middle; border: 1px solid var(--line); }
 .chip.bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-line); }
 .chip.ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-line); }
 .path { overflow-wrap: anywhere; }
 
-.presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 2px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
 .preset {
-  min-height: 48px; min-width: 0; padding: 8px 8px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface);
-  color: var(--fg); font: 600 0.92rem/1.25 var(--font-body); cursor: pointer; text-align: center;
+  min-height: 40px; min-width: 0; padding: 4px 6px; border: 0; border-left: 1px solid var(--line); background: var(--surface);
+  color: var(--fg); font: 600 0.85rem/1.2 var(--font-body); cursor: pointer; text-align: center;
 }
-.preset:hover { border-color: var(--accent); }
-.preset[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.group { margin-top: 20px; }
-.group h3 { font-size: 1rem; margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-body); font-weight: 600; font-size: 0.82rem; }
-.row { background: var(--surface); border: 1px solid var(--line); border-left-width: 6px; border-radius: 12px; padding: 12px 14px 4px; margin-bottom: 10px; min-width: 0; }
+.preset:first-child { border-left: 0; }
+.preset:hover { background: var(--surface-2); }
+.preset[aria-pressed="true"] { background: var(--accent-soft); color: var(--fg); box-shadow: inset 0 -3px 0 var(--accent); }
+.preset:focus-visible { outline-offset: -3px; }
+.group { margin-top: 10px; }
+.group h3 { margin: 0 0 4px 2px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-body); font-weight: 600; font-size: 0.72rem; }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 10px; min-height: 44px; background: var(--surface); border: 1px solid var(--line); border-left-width: 5px; border-radius: 10px; padding: 4px 6px 4px 10px; margin-bottom: 4px; min-width: 0; }
 .row.on-ok { border-left-color: var(--ok-line); }
 .row.on-risk { border-left-color: var(--bad); background: var(--bad-bg); }
-.row-top { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
-.row-title { min-width: 0; flex: 1 1 auto; }
-.row-name { font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
-.tag { display: inline-block; margin-top: 4px; padding: 0 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); }
+.row-title { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
+.row-name { font-weight: 500; font-size: 0.92rem; line-height: 1.3; overflow-wrap: anywhere; }
+.tag { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 0.7rem; line-height: 1.5; font-weight: 600; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); white-space: nowrap; }
 .tag.need { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-line); }
-.row-plain { margin: 8px 0 0; color: var(--muted); font-size: 0.95rem; }
-.row details { margin-top: 2px; }
 .sw {
-  flex: none; position: relative; width: 72px; height: 40px; border-radius: 20px; border: 2px solid var(--line);
-  background: var(--surface-2); color: var(--fg); cursor: pointer; padding: 0; font: 600 0.78rem var(--font-body);
+  flex: none; position: relative; width: 52px; height: 28px; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--surface-2); color: var(--fg); cursor: pointer; padding: 0; font: 600 0.68rem var(--font-body);
 }
-.sw .knob { position: absolute; top: 3px; left: 3px; width: 30px; height: 30px; border-radius: 50%; background: var(--muted); }
-.sw .st { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); }
+.sw::after { content: ""; position: absolute; inset: -9px -4px; }
+.sw .knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); }
+.sw .st { position: absolute; top: 50%; right: 7px; transform: translateY(-50%); }
 .sw[aria-checked="true"] { background: var(--ok-bg); border-color: var(--ok-line); }
-.sw[aria-checked="true"] .knob { transform: translateX(32px); background: var(--ok); }
-.sw[aria-checked="true"] .st { right: auto; left: 10px; }
+.sw[aria-checked="true"] .knob { transform: translateX(24px); background: var(--ok); }
+.sw[aria-checked="true"] .st { right: auto; left: 7px; }
 .row.on-risk .sw[aria-checked="true"] { background: var(--bad-bg); border-color: var(--bad); }
 .row.on-risk .sw[aria-checked="true"] .knob { background: var(--bad); }
+.info-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--accent); font: italic 700 0.9rem/1 var(--font-head); cursor: pointer; padding: 0; position: relative; }
+.info-btn::after { content: ""; position: absolute; inset: -6px; }
+.info-btn[aria-expanded="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.info { grid-column: 1 / -1; padding: 4px 0 6px; }
+.info[hidden] { display: none; }
+.info p { margin: 0 0 6px; font-size: 0.88rem; color: var(--muted); }
+.info h4 { font: 600 0.7rem var(--font-body); margin: 4px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
 /* risk list */
-.rings { display: grid; gap: 14px; margin-top: 16px; grid-template-columns: minmax(0, 1fr); }
-.ringbox { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; min-width: 0; }
-.ringbox h3 { margin-bottom: 8px; }
-.ringbox ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.ringbox li { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); min-width: 0; background: var(--surface); }
+.rings { display: grid; gap: 10px; margin-top: 10px; grid-template-columns: minmax(0, 1fr); }
+.ringbox { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.ringbox h3 { margin-bottom: 6px; font-size: 0.95rem; }
+.ringbox ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ringbox li { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); min-width: 0; background: var(--surface); }
 .ringbox li.bad { background: var(--bad-bg); border-color: var(--bad-line); }
-.ringbox li.ok { background: var(--surface); }
-.li-head { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; font-weight: 600; }
-.li-head .stt { font-size: 0.82rem; }
+.li-head { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; font-weight: 600; font-size: 0.92rem; }
+.li-head .stt { font-size: 0.8rem; }
 li.bad .stt { color: var(--bad); }
 li.ok .stt { color: var(--ok); }
-.li-body { margin: 4px 0 0; font-size: 0.93rem; color: var(--muted); overflow-wrap: anywhere; }
-.li-path { margin: 4px 0 0; font-size: 0.93rem; overflow-wrap: anywhere; }
+.li-body { margin: 2px 0 0; font-size: 0.88rem; color: var(--muted); overflow-wrap: anywhere; }
+.li-path { margin: 2px 0 0; font-size: 0.88rem; overflow-wrap: anywhere; }
 
 /* takeaways */
-.take { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; counter-reset: t; }
-.take > li { counter-increment: t; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
-.take h3::before { content: counter(t) ". "; color: var(--accent); }
-.take p { margin: 6px 0 0; }
-.take .kops { color: var(--muted); font-size: 0.95rem; }
+.take { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 0.95rem; }
+.take li::marker { color: var(--accent); font-weight: 700; }
+.kops-list { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 0.9rem; color: var(--muted); }
+.kops-list b { color: var(--fg); font-weight: 600; }
 
-.gloss dl { margin: 0; }
-.gloss dt { font-weight: 600; margin-top: 10px; }
-.gloss dd { margin: 2px 0 0; color: var(--muted); }
+.gloss dl { margin: 0; column-count: 1; column-gap: 32px; }
+.gi { break-inside: avoid; margin: 0 0 8px; }
+.gloss dt { font-weight: 600; font-size: 0.92rem; }
+.gloss dd { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.4; }
 
-footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; }
+footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+footer p { margin: 0 0 4px; }
 
 @media (min-width: 900px) {
-  .tool { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; }
+  .tool { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+  .diagram { max-width: none; max-height: max(300px, calc(100vh - 330px)); }
+  .toast { height: 84px; }
+  h1 { font-size: 1.6rem; }
   .rings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 900px) and (min-height: 860px) {
-  .sticky { position: sticky; top: 12px; }
+  .gloss dl { column-count: 2; }
 }
 @media (max-width: 560px) {
-  body { font-size: 16px; }
-  .wrap { padding-block: 28px 48px; }
-  .preset { font-size: 0.85rem; padding: 6px 4px; }
+  .wrap { padding-block: 12px 24px; }
+  h1 { font-size: 1.35rem; }
+  .intro { font-size: 0.92rem; }
+  .preset { font-size: 0.8rem; padding: 4px 3px; }
+  .row { gap: 0 8px; padding-left: 8px; }
+  .toast { min-height: 84px; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .blast { transition: transform .6s ease; }
   .sw .knob { transition: transform .15s; }
-  .preset { transition: background-color .15s, border-color .15s; }
+  .preset { transition: background-color .15s; }
 }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header id="top" class="prose">
+<header id="top">
   <h1 id="title">Permission Blast Radius</h1>
-  <p class="lead" style="margin-top:16px">
-    Imagine an attacker breaks into one app running in your Kubernetes cluster on AWS. What can they reach from there? That reach is the <b>blast radius</b>. Every permission the app has widens it, even the ones its job never uses. Giving a program only what it needs is called <b>least privilege</b>.
-  </p>
-  <p>Below, switch the app's permissions on and off and watch the radius grow and shrink. <a href="#glossary" id="gloss-link">What are these words?</a></p>
+  <p class="intro">An attacker broke into one app. Switch its permissions off and watch how far they can reach shrink. <a href="#glossary" id="gloss-link">What do these words mean?</a></p>
 </header>
 
-<section id="tool" aria-labelledby="tool-h">
-  <div class="step-label">The simulator</div>
-  <h2 id="tool-h">What can the attacker reach?</h2>
+<section id="tool" aria-label="Permission simulator">
   <div class="tool">
-    <div class="col sticky" id="col-diagram">
+    <div class="col" id="col-diagram">
       <div class="stage">
-        <svg class="diagram" id="diagram" viewBox="0 0 360 360" role="group" aria-label="Diagram of what an attacker can reach. Four rings around the attacker: the app, the cluster, the servers, and the AWS account."></svg>
-        <p class="cap">Dots on the rings are things at risk. Select a dot to see how the attacker gets there.</p>
+        <svg class="diagram" id="diagram" viewBox="0 0 360 360" role="group" aria-label="Diagram of what an attacker can reach. Four rings around the attacker: the app, the cluster, the servers, and the AWS account. Dots on the rings are things at risk. Select a dot to see how the attacker gets there."></svg>
       </div>
       <div class="readout">
         <div id="score" aria-live="polite"></div>
         <div id="job" aria-live="polite"></div>
         <p class="hint" id="hint"></p>
-        <p class="toast" id="toast" aria-live="polite">Try switching off the permissions the app doesn't need.</p>
-        <div class="panel" id="panel"></div>
+        <div class="toast" id="toast" aria-live="polite">Try switching off the permissions the app doesn't need. Select a dot in the diagram to see how the attacker gets there.</div>
       </div>
     </div>
     <div class="col" id="col-controls">
@@ -281,55 +282,54 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
   </div>
 </section>
 
-<section id="risk-section" aria-labelledby="risk-h">
-  <div class="step-label">Text version</div>
-  <h2 id="risk-h">What's at risk right now</h2>
-  <p class="prose">The same ten things as the diagram, grouped by how far they sit from the attacker. For each one at risk, the path shows how the attacker gets there.</p>
-  <div class="rings" id="risk-list"></div>
-</section>
-
-<section id="why-section" aria-labelledby="why-h" class="prose">
-  <div class="step-label">Why this matters</div>
-  <h2 id="why-h">Three things to take away</h2>
+<section id="why-section" aria-labelledby="why-h">
+  <h2 id="why-h">Why this matters</h2>
   <ol class="take">
-    <li id="take-1">
-      <h3>Unneeded permissions add risk and give nothing back.</h3>
-      <p>The app only reads files from its own folder. Every other switch makes the blast radius bigger and does not help the job.</p>
-      <p class="kops">In kOps setups, IRSA gives each app its own small AWS key card instead of sharing the server's.</p>
-    </li>
-    <li id="take-2">
-      <h3>Permissions chain together.</h3>
-      <p>One small permission can open bigger ones. Reading every bucket exposes the cluster's master keys, and the master keys give full control of the cluster.</p>
-      <p class="kops">This project limits the app to one folder, so the chain never starts.</p>
-    </li>
-    <li id="take-3">
-      <h3>Remove what the job doesn't need, then block the dangerous paths.</h3>
-      <p>Closing the shortcuts to the server's keys and to other apps keeps a break-in small.</p>
-      <p class="kops">kOps setups set the metadata hop limit to 1, add a default-deny NetworkPolicy, and write scoped RBAC roles with no secrets or pods/exec.</p>
-    </li>
+    <li id="take-1">Unneeded permissions add risk and give nothing back.</li>
+    <li id="take-2">Permissions chain together: one small one can open bigger ones.</li>
+    <li id="take-3">Remove what the job doesn't need, then block the dangerous paths.</li>
   </ol>
+  <details class="fold" id="why-more">
+    <summary>The details, and how kOps handles each</summary>
+    <div class="fold-body">
+      <ul class="kops-list">
+        <li><b>Nothing extra.</b> The app only reads files from its own folder. Every other switch makes the blast radius bigger and does not help the job. In kOps setups, IRSA gives each app its own small AWS key card instead of sharing the server's.</li>
+        <li><b>Chains.</b> Reading every bucket exposes the cluster's master keys, and the master keys give full control of the cluster. This project limits the app to one folder, so the chain never starts.</li>
+        <li><b>Block the paths.</b> Closing the shortcuts to the server's keys and to other apps keeps a break-in small. kOps setups set the metadata hop limit to 1, add a default-deny NetworkPolicy, and write scoped RBAC roles with no secrets or pods/exec.</li>
+      </ul>
+    </div>
+  </details>
 </section>
 
-<section id="glossary" class="gloss prose" aria-labelledby="gloss-h">
-  <div class="step-label">Reference</div>
-  <h2 id="gloss-h">Glossary</h2>
+<details class="fold" id="risk-section">
+  <summary id="risk-h">See the full list with attack paths</summary>
+  <div class="fold-body">
+    <p class="small muted" style="margin:0">The same ten things as the diagram, grouped by how far they sit from the attacker. For each one at risk, the path shows how the attacker gets there.</p>
+    <div class="rings" id="risk-list"></div>
+  </div>
+</details>
+
+<details class="fold gloss" id="glossary">
+  <summary id="gloss-h">What do these words mean?</summary>
+  <div class="fold-body">
   <dl>
-    <dt>Blast radius</dt><dd>How much damage one break-in can cause. Fewer permissions mean a smaller radius.</dd>
-    <dt>Least privilege</dt><dd>Giving a person or program only the access its job needs, and nothing more.</dd>
-    <dt>AWS</dt><dd>Amazon's cloud, where you rent computers, storage, and more.</dd>
-    <dt>IAM</dt><dd>AWS's key-card system: it decides who may do what in an AWS account.</dd>
-    <dt>Kubernetes</dt><dd>Software that runs many small apps across a group of computers and keeps them healthy.</dd>
-    <dt>kOps</dt><dd>A tool that builds and maintains a Kubernetes cluster on AWS.</dd>
-    <dt>Pod</dt><dd>One running copy of an app inside the cluster.</dd>
-    <dt>S3 bucket</dt><dd>A folder in the cloud for storing files.</dd>
-    <dt>Certificate authority (CA) key</dt><dd>The master key that proves who is who inside the cluster. Whoever holds it can forge an admin login.</dd>
-    <dt>Instance metadata (IMDS)</dt><dd>A special address a server can ask for its own AWS keys. If an attacker reaches it, they can borrow the server's identity.</dd>
-    <dt>NetworkPolicy</dt><dd>A Kubernetes rule that says which apps may talk to which. A default-deny policy blocks everything that is not listed.</dd>
-    <dt>RBAC</dt><dd>Kubernetes's key-card rules: which person or app may do which action on which thing inside the cluster.</dd>
-    <dt>IRSA</dt><dd>A way to give one app its own small AWS key card, instead of sharing the whole server's.</dd>
-    <dt>Secret</dt><dd>Kubernetes's safe for passwords and tokens.</dd>
+    <div class="gi"><dt>Blast radius</dt><dd>How much damage one break-in can cause. Fewer permissions mean a smaller radius.</dd></div>
+    <div class="gi"><dt>Least privilege</dt><dd>Giving a person or program only the access its job needs, and nothing more.</dd></div>
+    <div class="gi"><dt>AWS</dt><dd>Amazon's cloud, where you rent computers, storage, and more.</dd></div>
+    <div class="gi"><dt>IAM</dt><dd>AWS's key-card system: it decides who may do what in an AWS account.</dd></div>
+    <div class="gi"><dt>Kubernetes</dt><dd>Software that runs many small apps across a group of computers and keeps them healthy.</dd></div>
+    <div class="gi"><dt>kOps</dt><dd>A tool that builds and maintains a Kubernetes cluster on AWS.</dd></div>
+    <div class="gi"><dt>Pod</dt><dd>One running copy of an app inside the cluster.</dd></div>
+    <div class="gi"><dt>S3 bucket</dt><dd>A folder in the cloud for storing files.</dd></div>
+    <div class="gi"><dt>Certificate authority (CA) key</dt><dd>The master key that proves who is who inside the cluster. Whoever holds it can forge an admin login.</dd></div>
+    <div class="gi"><dt>Instance metadata (IMDS)</dt><dd>A special address a server can ask for its own AWS keys. If an attacker reaches it, they can borrow the server's identity.</dd></div>
+    <div class="gi"><dt>NetworkPolicy</dt><dd>A Kubernetes rule that says which apps may talk to which. A default-deny policy blocks everything that is not listed.</dd></div>
+    <div class="gi"><dt>RBAC</dt><dd>Kubernetes's key-card rules: which person or app may do which action on which thing inside the cluster.</dd></div>
+    <div class="gi"><dt>IRSA</dt><dd>A way to give one app its own small AWS key card, instead of sharing the whole server's.</dd></div>
+    <div class="gi"><dt>Secret</dt><dd>Kubernetes's safe for passwords and tokens.</dd></div>
   </dl>
-</section>
+  </div>
+</details>
 
 <footer>
   <p>Source and full configuration: <a href="https://github.com/toneyzhen/kops-least-privilege" id="repo-link">github.com/toneyzhen/kops-least-privilege</a></p>
@@ -471,7 +471,8 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
   }
   /*MODEL-END*/
 
-  var state = {}, selected = null, prevReached = null;
+  var state = {}, selected = null, prevReached = null,
+      lastMsg = { cls: "toast", text: "Try switching off the permissions the app doesn't need. Select a dot in the diagram to see how the attacker gets there." };
   var $ = function (id) { return document.getElementById(id); };
   var NS = "http://www.w3.org/2000/svg";
 
@@ -504,11 +505,11 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
     g.appendChild(blastEl);
     svg.appendChild(g);
     RINGS.forEach(function (rg) {
-      svg.appendChild(sv("text", { "class": "ring-name", x: CX, y: CY + RING_R[rg.n] - 6 }, rg.name));
+      svg.appendChild(sv("text", { "class": "ring-name", x: CX, y: CY + RING_R[rg.n] - 5 }, rg.name));
     });
     var atk = sv("g", { id: "attacker" });
-    atk.appendChild(sv("circle", { "class": "atk", cx: CX, cy: CY, r: 22 }));
-    atk.appendChild(sv("text", { "class": "atk-t", x: CX, y: CY + 3 }, "Attacker"));
+    atk.appendChild(sv("circle", { "class": "atk", cx: CX, cy: CY, r: 28 }));
+    atk.appendChild(sv("text", { "class": "atk-t", x: CX, y: CY + 4 }, "Attacker"));
     svg.appendChild(atk);
     TARGETS.forEach(function (t) {
       var a = ANGLE[t.id] * Math.PI / 180, r = RING_R[t.ring];
@@ -550,25 +551,24 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
       g.appendChild(el("h3", { id: "grp-" + gr.id }, gr.name));
       PERMS.filter(function (p) { return p.group === gr.id; }).forEach(function (p) {
         var row = el("div", { "class": "row", id: "row-" + p.id });
-        var top = el("div", { "class": "row-top" });
-        var ttl = el("div", { "class": "row-title" });
-        ttl.appendChild(el("div", { "class": "row-name", id: "lbl-" + p.id }, p.label));
-        ttl.appendChild(el("span", { "class": "tag " + (p.needed ? "need" : "") }, p.needed ? "Needed for the job" : "Not needed"));
         var sw = el("button", { type: "button", "class": "sw", id: "sw-" + p.id, role: "switch", "aria-checked": "false", "aria-labelledby": "lbl-" + p.id });
         sw.appendChild(el("span", { "class": "knob" }));
         sw.appendChild(el("span", { "class": "st" }, "Off"));
         sw.addEventListener("click", function () { state[p.id] = !state[p.id]; update(true); });
-        top.appendChild(ttl); top.appendChild(sw);
-        row.appendChild(top);
-        row.appendChild(el("p", { "class": "row-plain" }, p.plain));
-        var d = el("details", { id: "tech-" + p.id });
-        d.appendChild(el("summary", null, "Technical details"));
-        var t = el("div", { "class": "tech" });
-        t.appendChild(el("h4", null, "Technical name"));
-        t.appendChild(el("p", { "class": "small" }, p.tech));
-        var pre = el("pre"); pre.appendChild(el("code", null, p.snippet)); t.appendChild(pre);
-        d.appendChild(t);
-        row.appendChild(d);
+        var ttl = el("div", { "class": "row-title" });
+        ttl.appendChild(el("span", { "class": "row-name", id: "lbl-" + p.id }, p.label));
+        ttl.appendChild(el("span", { "class": "tag " + (p.needed ? "need" : "") }, p.needed ? "Needed" : "Not needed"));
+        var ib = el("button", { type: "button", "class": "info-btn", id: "info-btn-" + p.id, "aria-expanded": "false", "aria-controls": "tech-" + p.id, "aria-label": "More about: " + p.label }, "i");
+        var d = el("div", { "class": "info", id: "tech-" + p.id });
+        d.hidden = true;
+        d.appendChild(el("p", null, p.plain));
+        d.appendChild(el("h4", null, "Technical name"));
+        d.appendChild(el("p", { "class": "small" }, p.tech));
+        var pre = el("pre"); pre.appendChild(el("code", null, p.snippet)); d.appendChild(pre);
+        ib.addEventListener("click", function () {
+          var open = d.hidden; d.hidden = !open; ib.setAttribute("aria-expanded", String(open));
+        });
+        row.appendChild(sw); row.appendChild(ttl); row.appendChild(ib); row.appendChild(d);
         g.appendChild(row);
       });
       box.appendChild(g);
@@ -631,10 +631,10 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
         if (now[t.id] && !prevReached[t.id]) added.push(t.id);
         if (!now[t.id] && prevReached[t.id]) removed.push(t.id);
       });
-      var toast = $("toast");
-      if (added.length) { toast.className = "toast up"; toast.textContent = "+" + added.length + " now at risk: " + listNames(added); }
-      else if (removed.length) { toast.className = "toast down"; toast.textContent = "−" + removed.length + " no longer at risk: " + listNames(removed); }
-      else { toast.className = "toast"; toast.textContent = "No change in what's at risk."; }
+      selected = null;
+      if (added.length) lastMsg = { cls: "toast up", text: "+" + added.length + " now at risk: " + listNames(added) };
+      else if (removed.length) lastMsg = { cls: "toast down", text: "−" + removed.length + " no longer at risk: " + listNames(removed) };
+      else lastMsg = { cls: "toast", text: "No change in what's at risk." };
     }
     prevReached = {};
     for (var key in now) prevReached[key] = true;
@@ -644,24 +644,32 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
   }
 
   function renderPanel(res) {
-    var p = $("panel"); p.textContent = "";
-    if (!selected) { p.appendChild(el("p", { "class": "muted" }, "Select a dot in the diagram to see its path and what it means.")); return; }
+    var p = $("toast");
+    TARGETS.forEach(function (t) {
+      var n = $("node-" + t.id);
+      n.setAttribute("class", "node " + (res.reached[t.id] ? "reached" : "safe") + (selected === t.id ? " sel" : ""));
+      n.setAttribute("aria-pressed", String(selected === t.id));
+    });
+    if (!selected) {
+      if (lastMsg) { p.className = lastMsg.cls; p.textContent = lastMsg.text; }
+      return;
+    }
+    p.className = "toast"; p.textContent = "";
     var t = byId(TARGETS, selected), hit = !!res.reached[t.id];
-    var h = el("h3", { id: "panel-title" }, t.label);
+    var h = el("p", { id: "panel-title" });
+    h.appendChild(el("b", null, t.label));
     h.appendChild(el("span", { "class": "chip " + (hit ? "bad" : "ok") }, hit ? "✕ At risk" : "✓ Safe"));
     p.appendChild(h);
     p.appendChild(el("p", null, t.impact));
+    var pp = el("p", { "class": "path", id: "panel-path" });
     if (hit) {
-      var pp = el("p", { "class": "path", id: "panel-path" });
       pp.appendChild(el("b", null, "How they get there: "));
       pp.appendChild(document.createTextNode(pathOf(res, t.id).join(" → ")));
-      p.appendChild(pp);
     } else {
-      var w = el("p", { "class": "path", id: "panel-path" });
-      w.appendChild(el("b", null, "What would open it: "));
-      w.appendChild(document.createTextNode(t.rules.map(function (r) { return r.map(labelOf).join(" together with "); }).join("; or ")));
-      p.appendChild(w);
+      pp.appendChild(el("b", null, "What would open it: "));
+      pp.appendChild(document.createTextNode(t.rules.map(function (r) { return r.map(labelOf).join(" together with "); }).join("; or ")));
     }
+    p.appendChild(pp);
   }
 
   function renderList(res) {
@@ -691,10 +699,18 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
     update(false);
   }
 
+  function openGlossary(e) {
+    var g = $("glossary"); g.open = true;
+    if (e) { e.preventDefault(); g.scrollIntoView(); }
+  }
+  $("gloss-link").addEventListener("click", openGlossary);
+  window.addEventListener("hashchange", function () { if (location.hash === "#glossary") $("glossary").open = true; });
+
   buildDiagram();
   buildControls();
   PRESETS[1].on.forEach(function (id) { state[id] = true; });
   update(false);
+  if (location.hash === "#glossary") $("glossary").open = true;
 })();
 </script>
 </body>
