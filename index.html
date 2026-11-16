@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Least Privilege Simulator</title>
+<title>Permission Blast Radius</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -20,6 +20,7 @@
   --ok-bg: #e1f3e7;
   --ok-line: #8fc9a3;
   --bad: #a3231f;
+  --bad-fg: #ffffff;
   --bad-bg: #fbe5e3;
   --bad-line: #e3a29f;
   --code-bg: #eef1ee;
@@ -43,6 +44,7 @@
     --ok-bg: #173324;
     --ok-line: #2f7a4d;
     --bad: #ff9a94;
+    --bad-fg: #2a0e0d;
     --bad-bg: #3a1d1c;
     --bad-line: #8a3a36;
     --code-bg: #101513;
@@ -64,6 +66,7 @@
   --ok-bg: #173324;
   --ok-line: #2f7a4d;
   --bad: #ff9a94;
+  --bad-fg: #2a0e0d;
   --bad-bg: #3a1d1c;
   --bad-line: #8a3a36;
   --code-bg: #101513;
@@ -82,12 +85,13 @@ body {
   line-height: 1.6;
 }
 .wrap {
-  max-width: 68ch;
+  max-width: 1080px;
   margin: 0 auto;
   padding-block: 40px 64px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
+.prose { max-width: 68ch; }
 h1, h2, h3 { font-family: var(--font-head); line-height: 1.2; margin: 0; }
 h1 { font-size: clamp(2rem, 6vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
@@ -105,257 +109,222 @@ section { margin-top: 56px; }
 .box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
 .box > :last-child { margin-bottom: 0; }
 
-/* glossary teaser */
-.mini { margin-top: 18px; }
-.mini summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
-.mini dl, .gloss dl { margin: 0; }
-.mini dt, .gloss dt { font-weight: 600; margin-top: 10px; }
-.mini dd, .gloss dd { margin: 2px 0 0; color: var(--muted); }
-.gloss dt { color: var(--fg); }
-
-/* big switch */
-.switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--surface-2); padding: 6px; border-radius: 16px; border: 1px solid var(--line); }
-.switch button {
-  min-height: 64px; min-width: 0; border: 0; border-radius: 11px; background: transparent; color: var(--fg);
-  font: 600 1rem/1.25 var(--font-body); padding: 10px 12px; cursor: pointer; text-align: center;
-}
-.switch button small { display: block; font-weight: 400; color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
-.switch button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
-.switch button[aria-pressed="true"] small { color: var(--accent-fg); }
-.switch button:hover:not([aria-pressed="true"]) { background: var(--line); }
-.summary { margin-top: 16px; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--line); border-left-width: 6px; background: var(--surface); font-size: 1.05rem; }
-.summary.risky { border-color: var(--bad-line); background: var(--bad-bg); }
-.summary.safe { border-color: var(--ok-line); background: var(--ok-bg); }
-.summary b { font-weight: 600; }
-
-/* characters */
-.chars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
-.char {
-  text-align: left; min-width: 0; min-height: 44px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--line);
-  background: var(--surface); color: var(--fg); font: inherit; cursor: pointer;
-}
-.char .nm { display: block; font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; }
-.char .ds { display: block; color: var(--muted); font-size: 0.92rem; line-height: 1.45; margin-top: 4px; }
-.char[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.char:hover { border-color: var(--accent); }
-
-.actions { margin-top: 18px; display: grid; gap: 8px; }
-.actions h3 { margin-bottom: 4px; }
-.act {
-  text-align: left; min-height: 52px; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
-  color: var(--fg); font: 500 1rem/1.4 var(--font-body); cursor: pointer; display: flex; gap: 12px; align-items: center; min-width: 0;
-}
-.act .n { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-size: 0.85rem; font-weight: 600; }
-.act .t { min-width: 0; overflow-wrap: anywhere; }
-.act[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
-.act[aria-pressed="true"] .n { background: var(--accent); color: var(--accent-fg); }
-
-.result { margin-top: 16px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); overflow: hidden; }
-.result.ok { border-color: var(--ok-line); }
-.result.bad { border-color: var(--bad-line); }
-.verdict { display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-family: var(--font-head); font-weight: 700; font-size: 1.5rem; }
-.result.ok .verdict { background: var(--ok-bg); color: var(--ok); }
-.result.bad .verdict { background: var(--bad-bg); color: var(--bad); }
-.verdict svg { flex: none; width: 32px; height: 32px; }
-.res-body { padding: 16px 18px; }
-.res-body > :last-child { margin-bottom: 0; }
-.asked { color: var(--muted); font-size: 0.95rem; }
-.need { padding: 10px 14px; border-radius: 10px; background: var(--surface-2); margin-top: 14px; }
-.need b { font-weight: 600; }
-
-details { margin-top: 14px; }
+details { margin-top: 10px; }
 details > summary { cursor: pointer; font-weight: 600; color: var(--accent); min-height: 44px; display: flex; align-items: center; }
 details > summary::marker { color: var(--accent); }
-.tech { margin: 0 0 6px; }
-.tech h4 { font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; margin: 14px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 pre {
-  margin: 0; padding: 12px 14px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
-  overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.5; max-width: 100%;
+  margin: 0 0 8px; padding: 12px 14px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+  overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5; max-width: 100%;
 }
 pre code { font-family: inherit; }
+.tech h4 { font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; margin: 8px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
-/* story */
-.story { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; }
-.story li { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
-.story .num { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-family: var(--font-head); background: var(--surface-2); }
-.story .txt { min-width: 0; }
-.story .tag { display: block; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-.story li.bad { background: var(--bad-bg); border-color: var(--bad-line); }
-.story li.bad .num, .story li.bad .tag { color: var(--bad); }
-.story li.ok { background: var(--ok-bg); border-color: var(--ok-line); }
-.story li.ok .num, .story li.ok .tag { color: var(--ok); }
-.story li.skip { opacity: 1; border-style: dashed; color: var(--muted); }
-.story li.skip .tag { color: var(--muted); }
-.story-end { margin-top: 14px; font-weight: 600; font-size: 1.05rem; }
+/* main tool */
+.tool { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 18px; align-items: start; }
+.col { min-width: 0; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+.diagram { display: block; width: 100%; max-width: 100%; height: auto; }
+.cap { margin: 4px 4px 0; font-size: 0.88rem; color: var(--muted); }
 
-/* rules */
-.rules { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 14px; counter-reset: r; }
-.rules > li { counter-increment: r; padding: 16px 18px 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
-.rules h3::before { content: counter(r) ". "; color: var(--accent); }
-.rules p { margin: 6px 0 0; }
-.rules details { margin-top: 4px; }
+.ring-bg { fill: var(--surface); }
+.ring { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.ring-name { font: 600 10px var(--font-body); fill: var(--muted); text-anchor: middle; letter-spacing: 0.02em; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.blast { fill: var(--bad); fill-opacity: 0.15; stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 5 3; }
+.atk { fill: var(--bad); stroke: var(--surface); stroke-width: 2; }
+.atk-t { font: 700 9px var(--font-body); fill: var(--bad-fg); text-anchor: middle; }
+.node { cursor: pointer; outline: none; }
+.node .hit { fill: transparent; }
+.node .focus-ring { fill: none; stroke: none; stroke-width: 3; }
+.node:focus-visible .focus-ring { stroke: var(--focus); }
+.node.sel .focus-ring { stroke: var(--fg); stroke-width: 2; }
+.node:focus-visible.sel .focus-ring { stroke: var(--focus); stroke-width: 3; }
+.node .dot { fill: var(--surface); stroke: var(--muted); stroke-width: 2; }
+.node .gx, .node .gv { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: none; }
+.node .gx { stroke: var(--bad-fg); }
+.node .gv { stroke: var(--ok); }
+.node .nlabel { font: 500 11px var(--font-body); fill: var(--muted); text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; stroke-linejoin: round; }
+.node.safe .gv { display: inline; }
+.node.reached .dot { fill: var(--bad); stroke: var(--bad); }
+.node.reached .gx { display: inline; }
+.node.reached .nlabel { font-weight: 700; fill: var(--bad); }
+
+.readout { margin-top: 12px; }
+.score { font-family: var(--font-head); font-weight: 700; font-size: 1.25rem; }
+.meter { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; margin: 8px 0 10px; }
+.meter i { height: 14px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); }
+.meter i.on { background: var(--bad); border-color: var(--bad); }
+.job { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); font-weight: 600; }
+.job.ok { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
+.job.bad { background: var(--bad-bg); border-color: var(--bad-line); color: var(--bad); }
+.hint { margin: 10px 0 0; color: var(--muted); font-size: 0.95rem; }
+.toast { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border-left: 5px solid var(--accent); font-size: 0.95rem; min-height: 44px; }
+.toast.up { border-left-color: var(--bad); }
+.toast.down { border-left-color: var(--ok); }
+.panel { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.96rem; }
+.panel > :last-child { margin-bottom: 0; }
+.panel h3 { margin-bottom: 6px; }
+.chip { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; margin-left: 6px; vertical-align: middle; border: 1px solid var(--line); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-line); }
+.chip.ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-line); }
+.path { overflow-wrap: anywhere; }
+
+.presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.preset {
+  min-height: 48px; min-width: 0; padding: 8px 8px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface);
+  color: var(--fg); font: 600 0.92rem/1.25 var(--font-body); cursor: pointer; text-align: center;
+}
+.preset:hover { border-color: var(--accent); }
+.preset[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.group { margin-top: 20px; }
+.group h3 { font-size: 1rem; margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-body); font-weight: 600; font-size: 0.82rem; }
+.row { background: var(--surface); border: 1px solid var(--line); border-left-width: 6px; border-radius: 12px; padding: 12px 14px 4px; margin-bottom: 10px; min-width: 0; }
+.row.on-ok { border-left-color: var(--ok-line); }
+.row.on-risk { border-left-color: var(--bad); background: var(--bad-bg); }
+.row-top { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.row-title { min-width: 0; flex: 1 1 auto; }
+.row-name { font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.tag { display: inline-block; margin-top: 4px; padding: 0 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); }
+.tag.need { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-line); }
+.row-plain { margin: 8px 0 0; color: var(--muted); font-size: 0.95rem; }
+.row details { margin-top: 2px; }
+.sw {
+  flex: none; position: relative; width: 72px; height: 40px; border-radius: 20px; border: 2px solid var(--line);
+  background: var(--surface-2); color: var(--fg); cursor: pointer; padding: 0; font: 600 0.78rem var(--font-body);
+}
+.sw .knob { position: absolute; top: 3px; left: 3px; width: 30px; height: 30px; border-radius: 50%; background: var(--muted); }
+.sw .st { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); }
+.sw[aria-checked="true"] { background: var(--ok-bg); border-color: var(--ok-line); }
+.sw[aria-checked="true"] .knob { transform: translateX(32px); background: var(--ok); }
+.sw[aria-checked="true"] .st { right: auto; left: 10px; }
+.row.on-risk .sw[aria-checked="true"] { background: var(--bad-bg); border-color: var(--bad); }
+.row.on-risk .sw[aria-checked="true"] .knob { background: var(--bad); }
+
+/* risk list */
+.rings { display: grid; gap: 14px; margin-top: 16px; grid-template-columns: minmax(0, 1fr); }
+.ringbox { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.ringbox h3 { margin-bottom: 8px; }
+.ringbox ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ringbox li { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); min-width: 0; background: var(--surface); }
+.ringbox li.bad { background: var(--bad-bg); border-color: var(--bad-line); }
+.ringbox li.ok { background: var(--surface); }
+.li-head { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; font-weight: 600; }
+.li-head .stt { font-size: 0.82rem; }
+li.bad .stt { color: var(--bad); }
+li.ok .stt { color: var(--ok); }
+.li-body { margin: 4px 0 0; font-size: 0.93rem; color: var(--muted); overflow-wrap: anywhere; }
+.li-path { margin: 4px 0 0; font-size: 0.93rem; overflow-wrap: anywhere; }
+
+/* takeaways */
+.take { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; counter-reset: t; }
+.take > li { counter-increment: t; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+.take h3::before { content: counter(t) ". "; color: var(--accent); }
+.take p { margin: 6px 0 0; }
+.take .kops { color: var(--muted); font-size: 0.95rem; }
+
+.gloss dl { margin: 0; }
+.gloss dt { font-weight: 600; margin-top: 10px; }
+.gloss dd { margin: 2px 0 0; color: var(--muted); }
 
 footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; }
 
+@media (min-width: 900px) {
+  .tool { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; }
+  .rings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) and (min-height: 860px) {
+  .sticky { position: sticky; top: 12px; }
+}
 @media (max-width: 560px) {
   body { font-size: 16px; }
-  .chars { grid-template-columns: minmax(0, 1fr); }
-  .switch { grid-template-columns: minmax(0, 1fr); }
   .wrap { padding-block: 28px 48px; }
+  .preset { font-size: 0.85rem; padding: 6px 4px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .switch button, .char, .act { transition: background-color .15s, border-color .15s; }
+  .blast { transition: transform .6s ease; }
+  .sw .knob { transition: transform .15s; }
+  .preset { transition: background-color .15s, border-color .15s; }
 }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header id="top">
-  <h1 id="title">Least Privilege Simulator</h1>
+<header id="top" class="prose">
+  <h1 id="title">Permission Blast Radius</h1>
   <p class="lead" style="margin-top:16px">
-    <b>The principle of least privilege</b> means giving every person and every program only the access it needs to do its job, and nothing more. Picture an office building with key cards. The cleaner's card opens the supply closet, not the server room. If someone steals that card, they can't get far.
+    Imagine an attacker breaks into one app running in your Kubernetes cluster on AWS. What can they reach from there? That reach is the <b>blast radius</b>. Every permission the app has widens it, even the ones its job never uses. Giving a program only what it needs is called <b>least privilege</b>.
   </p>
-  <p>We'll use a Kubernetes cluster on AWS, built with a tool called kOps. Below you can flip between two worlds and see what changes.</p>
-  <details class="mini box" id="mini-gloss">
-    <summary>What are these? (AWS, Kubernetes, kOps)</summary>
-    <dl>
-      <dt>AWS</dt><dd>Amazon's cloud. You rent computers and storage from it.</dd>
-      <dt>Kubernetes</dt><dd>Software that runs and manages many small apps across many computers.</dd>
-      <dt>kOps</dt><dd>A tool that builds a Kubernetes "cluster" (a group of computers working together) on AWS for you.</dd>
-    </dl>
-    <p class="small muted" style="margin-top:10px">More words are explained in the <a href="#glossary">glossary</a> at the bottom.</p>
-  </details>
+  <p>Below, switch the app's permissions on and off and watch the radius grow and shrink. <a href="#glossary" id="gloss-link">What are these words?</a></p>
 </header>
 
-<section id="switch-section" aria-labelledby="switch-h">
-  <div class="step-label">Step 1</div>
-  <h2 id="switch-h">Pick a world</h2>
-  <p>Everything on this page follows this switch. Try both.</p>
-  <div class="switch" role="group" aria-label="Choose a world" id="mode-switch">
-    <button type="button" id="mode-full" aria-pressed="false">Everyone gets full access<small>One master key card for everybody</small></button>
-    <button type="button" id="mode-lp" aria-pressed="true">Least privilege<small>Each card opens only what's needed</small></button>
-  </div>
-  <div class="summary" id="summary" aria-live="polite"></div>
-</section>
-
-<section id="try-section" aria-labelledby="try-h">
-  <div class="step-label">Step 2</div>
-  <h2 id="try-h">Try it yourself</h2>
-  <p>Choose who you are, then pick something to try.</p>
-  <div class="chars" id="chars" role="group" aria-label="Choose a character"></div>
-  <div class="actions" id="actions" role="group" aria-label="Choose an action"></div>
-  <div id="result" aria-live="polite"></div>
-</section>
-
-<section id="attack-section" aria-labelledby="attack-h">
-  <div class="step-label">Step 3</div>
-  <h2 id="attack-h">How an attack plays out</h2>
-  <p>Say an attacker breaks into one app. How far can they get? This story follows the switch above.</p>
-  <ol class="story" id="story"></ol>
-  <p class="story-end" id="story-end" aria-live="polite"></p>
-  <details id="attack-tech">
-    <summary>Show the technical details</summary>
-    <div class="tech">
-      <h4>Step 2 is stopped by this server setting (kOps cluster.yaml)</h4>
-      <pre><code>instanceMetadata:
-  httpTokens: required
-  httpPutResponseHopLimit: 1</code></pre>
-      <h4>Step 3 is stopped by this (k8s/10-rbac-team-a.yaml)</h4>
-      <pre><code>apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: default
-  namespace: team-a
-automountServiceAccountToken: false</code></pre>
-      <h4>Step 4 is stopped because no rule allows editing permissions</h4>
-      <pre><code>rules:
-  - apiGroups: ["apps"]
-    resources: ["deployments", "replicasets"]
-  - apiGroups: [""]
-    resources: ["pods", "services", "configmaps"]
-  # no "roles", "rolebindings" or "secrets" anywhere</code></pre>
-      <h4>Step 5 is stopped by this AWS rule (kops-admin.json)</h4>
-      <pre><code>{ "Sid": "DenyIdentityOrganizationAndAccountChanges",
-  "Effect": "Deny",
-  "Action": ["iam:CreateUser", "iam:CreateAccessKey",
-             "iam:CreatePolicy", "organizations:*", "account:*", "..."],
-  "Resource": "*" }</code></pre>
+<section id="tool" aria-labelledby="tool-h">
+  <div class="step-label">The simulator</div>
+  <h2 id="tool-h">What can the attacker reach?</h2>
+  <div class="tool">
+    <div class="col sticky" id="col-diagram">
+      <div class="stage">
+        <svg class="diagram" id="diagram" viewBox="0 0 360 360" role="group" aria-label="Diagram of what an attacker can reach. Four rings around the attacker: the app, the cluster, the servers, and the AWS account."></svg>
+        <p class="cap">Dots on the rings are things at risk. Select a dot to see how the attacker gets there.</p>
+      </div>
+      <div class="readout">
+        <div id="score" aria-live="polite"></div>
+        <div id="job" aria-live="polite"></div>
+        <p class="hint" id="hint"></p>
+        <p class="toast" id="toast" aria-live="polite">Try switching off the permissions the app doesn't need.</p>
+        <div class="panel" id="panel"></div>
+      </div>
     </div>
-  </details>
+    <div class="col" id="col-controls">
+      <div class="presets" role="group" aria-label="Presets" id="presets"></div>
+      <div id="groups"></div>
+    </div>
+  </div>
 </section>
 
-<section id="rules-section" aria-labelledby="rules-h">
-  <div class="step-label">Step 4</div>
-  <h2 id="rules-h">The 5 rules this project follows</h2>
-  <ol class="rules" id="rules">
-    <li id="rule-1">
-      <h3>Give each person and program its own identity</h3>
-      <p>Nobody shares a key card. Admins, developers, and apps each log in as themselves, so you can see who did what.</p>
-      <details><summary>Show the technical details</summary><div class="tech"><pre><code>authentication:
-  aws:
-    backendMode: CRD
-    clusterID: ${CLUSTER_NAME}
-# humans sign in with an AWS role; the session name
-# shows up in logs as developer:&lt;who&gt;</code></pre></div></details>
+<section id="risk-section" aria-labelledby="risk-h">
+  <div class="step-label">Text version</div>
+  <h2 id="risk-h">What's at risk right now</h2>
+  <p class="prose">The same ten things as the diagram, grouped by how far they sit from the attacker. For each one at risk, the path shows how the attacker gets there.</p>
+  <div class="rings" id="risk-list"></div>
+</section>
+
+<section id="why-section" aria-labelledby="why-h" class="prose">
+  <div class="step-label">Why this matters</div>
+  <h2 id="why-h">Three things to take away</h2>
+  <ol class="take">
+    <li id="take-1">
+      <h3>Unneeded permissions add risk and give nothing back.</h3>
+      <p>The app only reads files from its own folder. Every other switch makes the blast radius bigger and does not help the job.</p>
+      <p class="kops">In kOps setups, IRSA gives each app its own small AWS key card instead of sharing the server's.</p>
     </li>
-    <li id="rule-2">
-      <h3>Grant only what the job needs</h3>
-      <p>The developer can manage apps in their own team's area. The app can read one folder. That's it.</p>
-      <details><summary>Show the technical details</summary><div class="tech"><pre><code>{
-  "Sid": "ReadAllowedPrefixObjects",
-  "Effect": "Allow",
-  "Action": "s3:GetObject",
-  "Resource": "arn:aws:s3:::${DEMO_DATA_BUCKET}/allowed/*"
-}</code></pre></div></details>
+    <li id="take-2">
+      <h3>Permissions chain together.</h3>
+      <p>One small permission can open bigger ones. Reading every bucket exposes the cluster's master keys, and the master keys give full control of the cluster.</p>
+      <p class="kops">This project limits the app to one folder, so the chain never starts.</p>
     </li>
-    <li id="rule-3">
-      <h3>Block the riskiest actions outright</h3>
-      <p>Some things, like creating new AWS users or weakening the settings bucket, are refused even for admins. A "Deny" always wins.</p>
-      <details><summary>Show the technical details</summary><div class="tech"><pre><code>{
-  "Sid": "DenyWeakeningStateStoreBucket",
-  "Effect": "Deny",
-  "Action": ["s3:PutBucketPolicy", "s3:DeleteBucket", "..."],
-  "Resource": "arn:aws:s3:::${KOPS_STATE_BUCKET}"
-}</code></pre></div></details>
-    </li>
-    <li id="rule-4">
-      <h3>Make admin access short-lived</h3>
-      <p>Admin access needs a second proof of identity (a code from your phone) and expires after one hour. There is no permanent admin password to steal.</p>
-      <details><summary>Show the technical details</summary><div class="tech"><pre><code>{
-  "Effect": "Allow",
-  "Principal": {"AWS": "arn:aws:iam::${AWS_ACCOUNT_ID}:root"},
-  "Action": "sts:AssumeRole",
-  "Condition": {"Bool": {"aws:MultiFactorAuthPresent": "true"}}
-}
-# role created with --max-session-duration 3600 (1 hour)</code></pre></div></details>
-    </li>
-    <li id="rule-5">
-      <h3>Assume something will get broken into, and limit how far it spreads</h3>
-      <p>Apps can't see the server's keys, can't talk to each other by default, and can't gain admin rights. A break-in stays small.</p>
-      <details><summary>Show the technical details</summary><div class="tech"><pre><code>apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: team-a
-spec:
-  podSelector: {}
-  policyTypes: ["Ingress", "Egress"]</code></pre></div></details>
+    <li id="take-3">
+      <h3>Remove what the job doesn't need, then block the dangerous paths.</h3>
+      <p>Closing the shortcuts to the server's keys and to other apps keeps a break-in small.</p>
+      <p class="kops">kOps setups set the metadata hop limit to 1, add a default-deny NetworkPolicy, and write scoped RBAC roles with no secrets or pods/exec.</p>
     </li>
   </ol>
 </section>
 
-<section id="glossary" class="gloss" aria-labelledby="gloss-h">
+<section id="glossary" class="gloss prose" aria-labelledby="gloss-h">
   <div class="step-label">Reference</div>
   <h2 id="gloss-h">Glossary</h2>
   <dl>
+    <dt>Blast radius</dt><dd>How much damage one break-in can cause. Fewer permissions mean a smaller radius.</dd>
+    <dt>Least privilege</dt><dd>Giving a person or program only the access its job needs, and nothing more.</dd>
     <dt>AWS</dt><dd>Amazon's cloud, where you rent computers, storage, and more.</dd>
     <dt>IAM</dt><dd>AWS's key-card system: it decides who may do what in an AWS account.</dd>
     <dt>Kubernetes</dt><dd>Software that runs many small apps across a group of computers and keeps them healthy.</dd>
     <dt>kOps</dt><dd>A tool that builds and maintains a Kubernetes cluster on AWS.</dd>
     <dt>Pod</dt><dd>One running copy of an app inside the cluster.</dd>
     <dt>S3 bucket</dt><dd>A folder in the cloud for storing files.</dd>
+    <dt>Certificate authority (CA) key</dt><dd>The master key that proves who is who inside the cluster. Whoever holds it can forge an admin login.</dd>
     <dt>Instance metadata (IMDS)</dt><dd>A special address a server can ask for its own AWS keys. If an attacker reaches it, they can borrow the server's identity.</dd>
+    <dt>NetworkPolicy</dt><dd>A Kubernetes rule that says which apps may talk to which. A default-deny policy blocks everything that is not listed.</dd>
     <dt>RBAC</dt><dd>Kubernetes's key-card rules: which person or app may do which action on which thing inside the cluster.</dd>
     <dt>IRSA</dt><dd>A way to give one app its own small AWS key card, instead of sharing the whole server's.</dd>
     <dt>Secret</dt><dd>Kubernetes's safe for passwords and tokens.</dd>
@@ -364,7 +333,7 @@ spec:
 
 <footer>
   <p>Source and full configuration: <a href="https://github.com/toneyzhen/kops-least-privilege" id="repo-link">github.com/toneyzhen/kops-least-privilege</a></p>
-  <p>All results here are simulated. Nothing on this page connects to AWS or to any cluster.</p>
+  <p>This simulation is a simplified model. Nothing on this page connects to AWS or to any cluster.</p>
 </footer>
 
 </div>
@@ -373,87 +342,138 @@ spec:
 (function () {
   "use strict";
 
-  var ADMIN_FULL = '{\n  "Effect": "Allow",\n  "Action": "*",\n  "Resource": "*"\n}\n# "everyone gets full access" = AdministratorAccess';
-  var K8S_FULL = 'apiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nsubjects:\n  - kind: Group\n    name: system:authenticated\nroleRef:\n  kind: ClusterRole\n  name: cluster-admin\n# "everyone gets full access" = everyone is cluster-admin';
-  var NODE_FULL = '{\n  "Effect": "Allow",\n  "Action": ["s3:*", "ec2:*"],\n  "Resource": "*"\n}\n# a broad server role, shared by every app on the machine\n# (illustrative; this is the pre-IRSA setup described in docs/kops.md)';
-  var IRSA = '{\n  "Sid": "ReadAllowedPrefixObjects",\n  "Effect": "Allow",\n  "Action": "s3:GetObject",\n  "Resource": "arn:aws:s3:::${DEMO_DATA_BUCKET}/allowed/*"\n},\n{\n  "Sid": "ListAllowedPrefixOnly",\n  "Effect": "Allow",\n  "Action": "s3:ListBucket",\n  "Resource": "arn:aws:s3:::${DEMO_DATA_BUCKET}",\n  "Condition": {"StringLike": {"s3:prefix": "allowed/*"}}\n}';
-  var DEV_ROLE = 'kind: Role\nmetadata:\n  name: team-a-developer\n  namespace: team-a\nrules:\n  - apiGroups: ["apps"]\n    resources: ["deployments", "replicasets"]\n    verbs: ["get","list","watch","create","update","patch","delete"]\n  - apiGroups: [""]\n    resources: ["pods", "services", "configmaps"]\n    verbs: ["get","list","watch","create","update","patch","delete"]\n  - apiGroups: [""]\n    resources: ["pods/log"]\n    verbs: ["get","list","watch"]\n# no rule for secrets, roles or rolebindings = not allowed';
-  var IMDS = 'instanceMetadata:\n  httpTokens: required\n  httpPutResponseHopLimit: 1';
-  var NO_TOKEN = 'apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: default\n  namespace: team-a\nautomountServiceAccountToken: false';
-
-  var CHARS = [
-    { id: "operator", name: "The cluster operator", desc: "The person who builds and runs the cluster.",
-      actions: [
-        { label: "Build the cluster's servers", cmd: "kops update cluster --yes",
-          needed: true,
-          full: { ok: true, why: "The admin may create servers. That's their job.", out: "I1115 10:02:11 Creating instance group control-plane-us-east-1a\nI1115 10:02:14 Cluster is being created\nCluster configured successfully.", rule: ADMIN_FULL },
-          lp: { ok: true, why: "The operator's role may create servers in this region. That's their job.", out: "I1115 10:02:11 Creating instance group control-plane-us-east-1a\nI1115 10:02:14 Cluster is being created\nCluster configured successfully.", rule: '{\n  "Sid": "Ec2CreateInRegion",\n  "Effect": "Allow",\n  "Action": ["ec2:CreateVpc", "ec2:RunInstances", "..."],\n  "Resource": "*",\n  "Condition": {"StringEquals": {"aws:RequestedRegion": "${AWS_REGION}"}}\n}' } },
-        { label: "Create a new admin user for the whole AWS account", cmd: "aws iam create-user --user-name backdoor",
-          needed: false,
-          full: { ok: true, why: "A master key lets you create any user you like, including a hidden one.", out: '{\n    "User": {\n        "UserName": "backdoor",\n        "UserId": "AIDAEXAMPLE1234567890",\n        "Arn": "arn:aws:iam::123456789012:user/backdoor"\n    }\n}', rule: ADMIN_FULL },
-          lp: { ok: false, why: "Creating users is on the block list. Even the operator can't do it.", out: "An error occurred (AccessDenied) when calling the CreateUser operation:\nUser is not authorized to perform: iam:CreateUser with an explicit deny", rule: '{\n  "Sid": "DenyIdentityOrganizationAndAccountChanges",\n  "Effect": "Deny",\n  "Action": ["iam:CreateUser", "iam:CreateAccessKey", "organizations:*", "account:*", "..."],\n  "Resource": "*"\n}' } },
-        { label: "Delete the bucket that stores the cluster's settings", cmd: "aws s3api delete-bucket --bucket my-kops-state",
-          needed: false,
-          full: { ok: true, why: "Full access includes deleting anything, even the cluster's own records.", out: "(no output: bucket deleted)", rule: ADMIN_FULL },
-          lp: { ok: false, why: "Deleting or weakening that bucket is on the block list.", out: "An error occurred (AccessDenied) when calling the DeleteBucket operation:\nUser is not authorized to perform: s3:DeleteBucket with an explicit deny", rule: '{\n  "Sid": "DenyWeakeningStateStoreBucket",\n  "Effect": "Deny",\n  "Action": ["s3:PutBucketPolicy", "s3:DeleteBucket", "..."],\n  "Resource": "arn:aws:s3:::${KOPS_STATE_BUCKET}"\n}' } }
-      ] },
-    { id: "developer", name: "A developer", desc: "Deploys apps into their own team's area of the cluster.",
-      actions: [
-        { label: "Deploy my team's app", cmd: "kubectl apply -f app.yaml -n team-a",
-          needed: true,
-          full: { ok: true, why: "Full access allows everything, including this.", out: "deployment.apps/web created", rule: K8S_FULL },
-          lp: { ok: true, why: "The developer's role lets them manage apps in team-a. That's their job.", out: "deployment.apps/web created", rule: DEV_ROLE } },
-        { label: "Read the passwords stored in the cluster", cmd: "kubectl get secrets -n team-a -o yaml",
-          needed: false,
-          full: { ok: true, why: "Full access can read every password in the cluster.", out: "apiVersion: v1\nitems:\n- data:\n    db-password: aHVudGVyMg==\n  kind: Secret\n  metadata:\n    name: db-credentials", rule: K8S_FULL },
-          lp: { ok: false, why: "The developer's role has no rule about secrets, so the answer is no.", out: 'Error from server (Forbidden): secrets is forbidden:\nUser "developer:alice" cannot list resource "secrets" in API group ""\nin the namespace "team-a"', rule: DEV_ROLE } },
-        { label: "Give myself more permissions", cmd: "kubectl create rolebinding me-admin --clusterrole=cluster-admin --user=developer:alice -n team-a",
-          needed: false,
-          full: { ok: true, why: "With full access, nothing stops you from handing out more.", out: "rolebinding.rbac.authorization.k8s.io/me-admin created", rule: K8S_FULL },
-          lp: { ok: false, why: "Only admins can change permissions. The developer's role has no rule for that.", out: 'Error from server (Forbidden): rolebindings.rbac.authorization.k8s.io is forbidden:\nUser "developer:alice" cannot create resource "rolebindings"\nin the namespace "team-a"', rule: DEV_ROLE } }
-      ] },
-    { id: "app", name: "An app", desc: "A program running in the cluster that needs to read one folder of files.",
-      actions: [
-        { label: "Read a file from its allowed folder", cmd: "aws s3 cp s3://demo-data/allowed/report.txt -",
-          needed: true,
-          full: { ok: true, why: "Full access allows everything, including this.", out: "Quarterly report: all systems normal.", rule: NODE_FULL },
-          lp: { ok: true, why: "The app has its own small key card for exactly this folder.", out: "Quarterly report: all systems normal.", rule: IRSA } },
-        { label: "Read a file from the private folder", cmd: "aws s3 cp s3://demo-data/private/payroll.csv -",
-          needed: false,
-          full: { ok: true, why: "The app borrows the server's broad key card, which opens the whole bucket.", out: "name,salary\nAlice,120000\nBob,95000", rule: NODE_FULL },
-          lp: { ok: false, why: "The app's key card only opens the allowed folder.", out: "download failed: An error occurred (AccessDenied) when calling the GetObject operation:\nUser is not authorized to perform: s3:GetObject on resource: .../private/payroll.csv", rule: IRSA } },
-        { label: "Create a new storage disk in AWS", cmd: "aws ec2 create-volume --size 1 --availability-zone us-east-1a",
-          needed: false,
-          full: { ok: true, why: "The server's broad key card also lets any app on it create disks.", out: '{\n    "VolumeId": "vol-0a1b2c3d4e5f60718",\n    "Size": 1,\n    "State": "creating"\n}', rule: NODE_FULL },
-          lp: { ok: false, why: "The app's key card has no rule about disks, so the answer is no.", out: "An error occurred (UnauthorizedOperation) when calling the CreateVolume operation:\nYou are not authorized to perform this operation.", rule: IRSA } }
-      ] },
-    { id: "attacker", name: "An attacker", desc: "Someone who broke into one app and is now looking around.",
-      actions: [
-        { label: "Read the same folder the hacked app can read", cmd: "aws s3 cp s3://demo-data/allowed/report.txt -",
-          needed: true,
-          full: { ok: true, why: "Full access allows everything.", out: "Quarterly report: all systems normal.", rule: NODE_FULL },
-          lp: { ok: true, why: "The hacked app was already allowed to do this, so the attacker can too. That's why the key card must be small.", out: "Quarterly report: all systems normal.", rule: IRSA } },
-        { label: "Steal the server's AWS keys", cmd: "curl http://169.254.169.254/latest/meta-data/iam/security-credentials/",
-          needed: false,
-          full: { ok: true, why: "Any app on the server can ask for the server's own keys.", out: "nodes.lp-demo.k8s.local\n{\n  \"AccessKeyId\": \"ASIAEXAMPLE...\",\n  \"SecretAccessKey\": \"wJalr...\",\n  \"Token\": \"IQoJb3...\"\n}", rule: "# default server setting: any app on the machine\n# can reach the metadata address and read the keys" },
-          lp: { ok: false, why: "The server's settings make the answer travel only one hop, so it never reaches the app.", out: "curl: (28) Connection timed out after 5001 milliseconds", rule: IMDS } },
-        { label: "Read the cluster's passwords with the app's token", cmd: "curl -sk -H \"Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)\" https://kubernetes.default/api/v1/secrets",
-          needed: false,
-          full: { ok: true, why: "The app carries a cluster token, and with full access that token opens everything.", out: '{\n  "kind": "SecretList",\n  "items": [\n    { "metadata": {"name": "db-credentials"}, "data": {"db-password": "aHVudGVyMg=="} }\n  ]\n}', rule: K8S_FULL },
-          lp: { ok: false, why: "The app was never given a cluster token, so there is nothing to use.", out: "cat: /var/run/secrets/kubernetes.io/serviceaccount/token: No such file or directory", rule: NO_TOKEN } }
-      ] }
+  /*MODEL-START*/
+  var GROUPS = [
+    { id: "aws", name: "What the app can do in AWS" },
+    { id: "k8s", name: "What the app can do inside the cluster" },
+    { id: "net", name: "Network and server settings" }
   ];
 
-  var STORY = [
-    { text: "The attacker breaks into one app.", start: true },
-    { text: "They try to grab the server's AWS keys.", block: "the server's settings stop apps from reaching its AWS keys." },
-    { text: "They try to read the cluster's master keys (its stored passwords).", block: "the app has no cluster token, so it can't read the stored passwords." },
-    { text: "They try to make themselves an admin of the cluster.", block: "no one but admins can change permissions." },
-    { text: "They try to take over the whole AWS account.", block: "AWS refuses to create new users, even for admins." }
+  var PERMS = [
+    { id: "P1", group: "aws", label: "Read files in its own folder", needed: true,
+      plain: "The app can open files in one folder of one bucket. This is its whole job.",
+      tech: "s3:GetObject on arn:aws:s3:::demo-data/allowed/*",
+      snippet: '{\n  "Effect": "Allow",\n  "Action": "s3:GetObject",\n  "Resource": "arn:aws:s3:::demo-data/allowed/*"\n}' },
+    { id: "P2", group: "aws", label: "Read every file in every storage bucket", needed: false,
+      plain: "The app can open any file anywhere in the account's storage, not just its own folder.",
+      tech: "s3:GetObject on * (as in AmazonS3ReadOnlyAccess)",
+      snippet: '{\n  "Effect": "Allow",\n  "Action": "s3:GetObject",\n  "Resource": "*"\n}\n# AmazonS3ReadOnlyAccess grants this and more' },
+    { id: "P3", group: "aws", label: "Create and delete servers", needed: false,
+      plain: "The app can start servers, stop them and delete them.",
+      tech: "ec2:*",
+      snippet: '{\n  "Effect": "Allow",\n  "Action": "ec2:*",\n  "Resource": "*"\n}' },
+    { id: "P4", group: "aws", label: "Create users and hand out permissions", needed: false,
+      plain: "The app can make new AWS users and give them any access it likes.",
+      tech: "iam:*",
+      snippet: '{\n  "Effect": "Allow",\n  "Action": "iam:*",\n  "Resource": "*"\n}' },
+    { id: "P5", group: "k8s", label: "Read the cluster's stored passwords (secrets)", needed: false,
+      plain: "The app can list and read every password and token kept in the cluster.",
+      tech: "RBAC: secrets get/list in a ClusterRole",
+      snippet: 'kind: ClusterRole\nmetadata:\n  name: app-reader\nrules:\n  - apiGroups: [""]\n    resources: ["secrets"]\n    verbs: ["get", "list"]' },
+    { id: "P6", group: "k8s", label: "Run commands inside other apps", needed: false,
+      plain: "The app can open a shell inside any other app, as if it were sitting at that app's keyboard.",
+      tech: "RBAC: pods/exec create",
+      snippet: 'rules:\n  - apiGroups: [""]\n    resources: ["pods/exec"]\n    verbs: ["create"]' },
+    { id: "P7", group: "net", label: "Reach the server's own AWS keys", needed: false,
+      plain: "The app can ask the server it runs on for that server's AWS keys.",
+      tech: "IMDS reachable from pods: httpPutResponseHopLimit: 2, no NetworkPolicy on 169.254.169.254",
+      snippet: 'instanceMetadata:\n  httpTokens: optional\n  httpPutResponseHopLimit: 2\n# no NetworkPolicy blocks 169.254.169.254\n#\n# Least-privilege fix:\n#   httpPutResponseHopLimit: 1\n#   plus an egress NetworkPolicy that blocks 169.254.169.254' },
+    { id: "P8", group: "net", label: "Talk to every other app on the network", needed: false,
+      plain: "Nothing stops the app from sending requests to any other app in the cluster.",
+      tech: "No default-deny NetworkPolicy",
+      snippet: '# no NetworkPolicy in the namespace, so all traffic is allowed\n#\n# Least-privilege fix:\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-all\nspec:\n  podSelector: {}\n  policyTypes: ["Ingress", "Egress"]' },
+    { id: "P9", group: "net", label: "Server keys can manage disks", needed: false,
+      plain: "The server's own AWS keys include permission to attach disks and copy them.",
+      tech: "Node IAM role carries EBS permissions (ec2:AttachVolume, ec2:CreateSnapshot, ...)",
+      snippet: '{\n  "Effect": "Allow",\n  "Action": ["ec2:AttachVolume", "ec2:DetachVolume",\n             "ec2:CreateSnapshot", "ec2:DeleteVolume", "..."],\n  "Resource": "*"\n}\n# attached to the node role in older kOps setups,\n# before addons got their own roles (IRSA)' }
   ];
 
-  var mode = "lp", charId = "developer", actIdx = 0;
+  var RINGS = [
+    { n: 1, name: "The app" },
+    { n: 2, name: "The cluster" },
+    { n: 3, name: "The servers" },
+    { n: 4, name: "The AWS account" }
+  ];
+
+  // rules: any one alternative is enough; every id inside an alternative must hold.
+  var TARGETS = [
+    { id: "T1", ring: 1, label: "The app's own files", short: "App's files",
+      impact: "They can read the files the app is meant to read.",
+      rules: [["P1"], ["P2"]] },
+    { id: "T2", ring: 2, label: "Other apps", short: "Other apps",
+      impact: "They can send requests to neighbouring apps, or run commands inside them.",
+      rules: [["P6"], ["P8"], ["T4"]] },
+    { id: "T3", ring: 2, label: "Cluster passwords", short: "Passwords",
+      impact: "They can copy database logins, API tokens and every other stored secret.",
+      rules: [["P5"], ["T4"]] },
+    { id: "T4", ring: 2, label: "Full control of the cluster", short: "Cluster admin",
+      impact: "They can run anything in the cluster, change any app and hand out more access.",
+      rules: [["P5"], ["T7"]] },
+    { id: "T5", ring: 3, label: "The server's AWS keys", short: "Server keys",
+      impact: "They can act as the server itself inside AWS.",
+      rules: [["P7"], ["T4"]] },
+    { id: "T6", ring: 3, label: "Server disks and snapshots", short: "Server disks",
+      impact: "They can copy or wipe the disks where apps keep their data.",
+      rules: [["P3"], ["T5", "P9"]] },
+    { id: "T7", ring: 4, label: "Cluster master keys", short: "Master keys",
+      impact: "The kOps settings bucket holds the cluster's certificate authority key. With it they can forge an admin login.",
+      rules: [["P2"]] },
+    { id: "T8", ring: 4, label: "All company data in S3", short: "All S3 data",
+      impact: "They can read every file in every bucket, including private folders.",
+      rules: [["P2"]] },
+    { id: "T9", ring: 4, label: "Launch or destroy servers", short: "Launch servers",
+      impact: "They can start costly servers or shut down the real ones.",
+      rules: [["P3"]] },
+    { id: "T10", ring: 4, label: "Whole AWS account", short: "Account takeover",
+      impact: "They can create admin users and lock the owners out.",
+      rules: [["P4"]] }
+  ];
+
+  var PRESETS = [
+    { id: "least", name: "Least privilege", on: ["P1"] },
+    { id: "typical", name: "Typical setup", on: ["P1", "P2", "P5", "P7", "P8", "P9"] },
+    { id: "full", name: "Full access", on: ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"] }
+  ];
+
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function isPerm(id) { return id.charAt(0) === "P"; }
+  function labelOf(id) { return (isPerm(id) ? byId(PERMS, id) : byId(TARGETS, id)).label; }
+
+  // on: object like {P1: true}. Returns { reached: {T1: true}, via: {T1: ["P1"]}, order: [...], works: bool }
+  function compute(on) {
+    var reached = {}, via = {}, order = [], changed = true;
+    while (changed) {
+      changed = false;
+      var snap = {}, k, found = [];
+      for (k in reached) snap[k] = true;
+      TARGETS.forEach(function (t) {
+        if (snap[t.id]) return;
+        for (var r = 0; r < t.rules.length; r++) {
+          var ok = t.rules[r].every(function (it) { return isPerm(it) ? !!on[it] : !!snap[it]; });
+          if (ok) { found.push([t.id, t.rules[r]]); return; }
+        }
+      });
+      found.forEach(function (f) { reached[f[0]] = true; via[f[0]] = f[1]; order.push(f[0]); changed = true; });
+    }
+    return { reached: reached, via: via, order: order, works: !!reached.T1 };
+  }
+
+  // chain of plain labels from the first permission to the target
+  function pathOf(res, tid) {
+    var out = [];
+    function add(l) { if (out.indexOf(l) < 0) out.push(l); }
+    function walk(id) {
+      res.via[id].forEach(function (it) { if (isPerm(it)) add(labelOf(it)); else walk(it); });
+      add(labelOf(id));
+    }
+    walk(tid);
+    return out;
+  }
+  /*MODEL-END*/
+
+  var state = {}, selected = null, prevReached = null;
   var $ = function (id) { return document.getElementById(id); };
+  var NS = "http://www.w3.org/2000/svg";
 
   function el(tag, attrs, text) {
     var e = document.createElement(tag);
@@ -461,124 +481,220 @@ spec:
     if (text != null) e.textContent = text;
     return e;
   }
+  function sv(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
 
-  function currentChar() { for (var i = 0; i < CHARS.length; i++) if (CHARS[i].id === charId) return CHARS[i]; return CHARS[0]; }
+  // ---- diagram ----
+  var CX = 180, CY = 180;
+  var RING_R = { 1: 42, 2: 86, 3: 128, 4: 168 };
+  var ANGLE = { T1: -90, T4: -90, T2: 20, T3: 160, T5: -30, T6: -150, T7: -135, T8: -45, T9: 135, T10: 45 };
+  var blastEl;
 
-  function renderSummary() {
-    var total = 0, ok = 0, unneeded = 0, needed = 0;
-    CHARS.forEach(function (c) { c.actions.forEach(function (a) {
-      total++;
-      var r = a[mode];
-      if (r.ok) { ok++; if (!a.needed) unneeded++; else needed++; }
-    }); });
-    var s = $("summary");
-    s.className = "summary " + (mode === "full" ? "risky" : "safe");
-    if (mode === "full") {
-      s.textContent = "With full access, " + ok + " of " + total + " things succeed, including " + unneeded + " that nobody needed.";
+  function buildDiagram() {
+    var svg = $("diagram");
+    svg.textContent = "";
+    svg.appendChild(sv("circle", { "class": "ring-bg", cx: CX, cy: CY, r: RING_R[4] + 6 }));
+    [4, 3, 2, 1].forEach(function (n) { svg.appendChild(sv("circle", { "class": "ring", cx: CX, cy: CY, r: RING_R[n] })); });
+    var g = sv("g", { transform: "translate(" + CX + " " + CY + ")" });
+    blastEl = sv("circle", { "class": "blast", id: "blast", r: 180 });
+    g.appendChild(blastEl);
+    svg.appendChild(g);
+    RINGS.forEach(function (rg) {
+      svg.appendChild(sv("text", { "class": "ring-name", x: CX, y: CY + RING_R[rg.n] - 6 }, rg.name));
+    });
+    var atk = sv("g", { id: "attacker" });
+    atk.appendChild(sv("circle", { "class": "atk", cx: CX, cy: CY, r: 22 }));
+    atk.appendChild(sv("text", { "class": "atk-t", x: CX, y: CY + 3 }, "Attacker"));
+    svg.appendChild(atk);
+    TARGETS.forEach(function (t) {
+      var a = ANGLE[t.id] * Math.PI / 180, r = RING_R[t.ring];
+      var x = Math.round((CX + r * Math.cos(a)) * 10) / 10, y = Math.round((CY + r * Math.sin(a)) * 10) / 10;
+      var n = sv("g", { "class": "node safe", id: "node-" + t.id, tabindex: "0", role: "button", transform: "translate(" + x + " " + y + ")" });
+      n.appendChild(sv("circle", { "class": "hit", r: 17 }));
+      n.appendChild(sv("circle", { "class": "focus-ring", r: 14 }));
+      n.appendChild(sv("circle", { "class": "dot", r: 9 }));
+      n.appendChild(sv("path", { "class": "gx", d: "M-3.5 -3.5L3.5 3.5M3.5 -3.5L-3.5 3.5" }));
+      n.appendChild(sv("path", { "class": "gv", d: "M-4 0.5L-1.2 3.4L4.4 -3" }));
+      n.appendChild(sv("text", { "class": "nlabel", x: 0, y: y < CY ? -15 : 23 }, t.short));
+      n.addEventListener("click", function () { select(t.id); });
+      n.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); select(t.id); }
+      });
+      svg.appendChild(n);
+    });
+  }
+
+  function blastRadius(res) {
+    var max = 0;
+    TARGETS.forEach(function (t) { if (res.reached[t.id] && t.ring > max) max = t.ring; });
+    if (max === 0) return 26;
+    if (max === 1) return 52;
+    return Math.min(RING_R[max] + 14, 178);
+  }
+
+  // ---- controls ----
+  function buildControls() {
+    var pb = $("presets"); pb.textContent = "";
+    PRESETS.forEach(function (p) {
+      var b = el("button", { type: "button", "class": "preset", id: "preset-" + p.id, "aria-pressed": "false" }, p.name);
+      b.addEventListener("click", function () { applyPreset(p); });
+      pb.appendChild(b);
+    });
+    var box = $("groups"); box.textContent = "";
+    GROUPS.forEach(function (gr) {
+      var g = el("div", { "class": "group", role: "group", "aria-labelledby": "grp-" + gr.id });
+      g.appendChild(el("h3", { id: "grp-" + gr.id }, gr.name));
+      PERMS.filter(function (p) { return p.group === gr.id; }).forEach(function (p) {
+        var row = el("div", { "class": "row", id: "row-" + p.id });
+        var top = el("div", { "class": "row-top" });
+        var ttl = el("div", { "class": "row-title" });
+        ttl.appendChild(el("div", { "class": "row-name", id: "lbl-" + p.id }, p.label));
+        ttl.appendChild(el("span", { "class": "tag " + (p.needed ? "need" : "") }, p.needed ? "Needed for the job" : "Not needed"));
+        var sw = el("button", { type: "button", "class": "sw", id: "sw-" + p.id, role: "switch", "aria-checked": "false", "aria-labelledby": "lbl-" + p.id });
+        sw.appendChild(el("span", { "class": "knob" }));
+        sw.appendChild(el("span", { "class": "st" }, "Off"));
+        sw.addEventListener("click", function () { state[p.id] = !state[p.id]; update(true); });
+        top.appendChild(ttl); top.appendChild(sw);
+        row.appendChild(top);
+        row.appendChild(el("p", { "class": "row-plain" }, p.plain));
+        var d = el("details", { id: "tech-" + p.id });
+        d.appendChild(el("summary", null, "Technical details"));
+        var t = el("div", { "class": "tech" });
+        t.appendChild(el("h4", null, "Technical name"));
+        t.appendChild(el("p", { "class": "small" }, p.tech));
+        var pre = el("pre"); pre.appendChild(el("code", null, p.snippet)); t.appendChild(pre);
+        d.appendChild(t);
+        row.appendChild(d);
+        g.appendChild(row);
+      });
+      box.appendChild(g);
+    });
+  }
+
+  function applyPreset(p) {
+    PERMS.forEach(function (x) { state[x.id] = p.on.indexOf(x.id) >= 0; });
+    update(true);
+  }
+
+  function listNames(ids) { return ids.map(labelOf).join(", "); }
+
+  // ---- render ----
+  function update(announce) {
+    var res = compute(state);
+    var now = res.reached;
+
+    PERMS.forEach(function (p) {
+      var on = !!state[p.id];
+      var sw = $("sw-" + p.id);
+      sw.setAttribute("aria-checked", String(on));
+      sw.lastChild.textContent = on ? "On" : "Off";
+      $("row-" + p.id).className = "row" + (on ? (p.needed ? " on-ok" : " on-risk") : "");
+    });
+    PRESETS.forEach(function (p) {
+      var same = PERMS.every(function (x) { return !!state[x.id] === (p.on.indexOf(x.id) >= 0); });
+      $("preset-" + p.id).setAttribute("aria-pressed", String(same));
+    });
+
+    var count = 0;
+    TARGETS.forEach(function (t) {
+      var hit = !!now[t.id]; if (hit) count++;
+      var n = $("node-" + t.id);
+      n.setAttribute("class", "node " + (hit ? "reached" : "safe") + (selected === t.id ? " sel" : ""));
+      n.setAttribute("aria-pressed", String(selected === t.id));
+      n.setAttribute("aria-label", t.label + ": " + (hit ? "at risk" : "safe") + ". " + RINGS[t.ring - 1].name + ".");
+    });
+    blastEl.style.transform = "scale(" + (blastRadius(res) / 180).toFixed(4) + ")";
+
+    var sc = $("score"); sc.textContent = "";
+    sc.appendChild(el("div", { "class": "score", id: "score-text" }, "Damage potential: " + count + " of " + TARGETS.length + " things at risk"));
+    var m = el("div", { "class": "meter", "aria-hidden": "true" });
+    for (var i = 0; i < TARGETS.length; i++) m.appendChild(el("i", { "class": i < count ? "on" : "" }));
+    sc.appendChild(m);
+
+    var job = $("job");
+    if (res.works) { job.className = "job ok"; job.textContent = "✓ The app works. It can read its own files."; }
+    else { job.className = "job bad"; job.textContent = "⚠ The app is broken: it can't read its own files. Least privilege means the minimum the job needs, not zero."; }
+
+    var extra = PERMS.filter(function (p) { return state[p.id] && !p.needed; }).length;
+    var hint = $("hint");
+    if (res.works && extra === 0) hint.textContent = "That is least privilege. The app can do its job and nothing else.";
+    else if (extra > 0) hint.textContent = extra + (extra === 1 ? " permission is on that the job doesn't need." : " permissions are on that the job doesn't need.");
+    else hint.textContent = "";
+
+    if (announce && prevReached) {
+      var added = [], removed = [];
+      TARGETS.forEach(function (t) {
+        if (now[t.id] && !prevReached[t.id]) added.push(t.id);
+        if (!now[t.id] && prevReached[t.id]) removed.push(t.id);
+      });
+      var toast = $("toast");
+      if (added.length) { toast.className = "toast up"; toast.textContent = "+" + added.length + " now at risk: " + listNames(added); }
+      else if (removed.length) { toast.className = "toast down"; toast.textContent = "−" + removed.length + " no longer at risk: " + listNames(removed); }
+      else { toast.className = "toast"; toast.textContent = "No change in what's at risk."; }
+    }
+    prevReached = {};
+    for (var key in now) prevReached[key] = true;
+
+    renderPanel(res);
+    renderList(res);
+  }
+
+  function renderPanel(res) {
+    var p = $("panel"); p.textContent = "";
+    if (!selected) { p.appendChild(el("p", { "class": "muted" }, "Select a dot in the diagram to see its path and what it means.")); return; }
+    var t = byId(TARGETS, selected), hit = !!res.reached[t.id];
+    var h = el("h3", { id: "panel-title" }, t.label);
+    h.appendChild(el("span", { "class": "chip " + (hit ? "bad" : "ok") }, hit ? "✕ At risk" : "✓ Safe"));
+    p.appendChild(h);
+    p.appendChild(el("p", null, t.impact));
+    if (hit) {
+      var pp = el("p", { "class": "path", id: "panel-path" });
+      pp.appendChild(el("b", null, "How they get there: "));
+      pp.appendChild(document.createTextNode(pathOf(res, t.id).join(" → ")));
+      p.appendChild(pp);
     } else {
-      s.textContent = "With least privilege, " + ok + " of " + total + " things succeed, and all " + needed + " are things the job needed. The other " + (total - ok) + " are blocked.";
+      var w = el("p", { "class": "path", id: "panel-path" });
+      w.appendChild(el("b", null, "What would open it: "));
+      w.appendChild(document.createTextNode(t.rules.map(function (r) { return r.map(labelOf).join(" together with "); }).join("; or ")));
+      p.appendChild(w);
     }
   }
 
-  function renderChars() {
-    var box = $("chars"); box.textContent = "";
-    CHARS.forEach(function (c) {
-      var b = el("button", { type: "button", "class": "char", id: "char-" + c.id, "aria-pressed": String(c.id === charId) });
-      b.appendChild(el("span", { "class": "nm" }, c.name));
-      b.appendChild(el("span", { "class": "ds" }, c.desc));
-      b.addEventListener("click", function () { charId = c.id; actIdx = -1; renderChars(); renderActions(); renderResult(); });
-      box.appendChild(b);
+  function renderList(res) {
+    var box = $("risk-list"); box.textContent = "";
+    RINGS.forEach(function (rg) {
+      var rb = el("div", { "class": "ringbox" });
+      rb.appendChild(el("h3", null, "Ring " + rg.n + ": " + rg.name));
+      var ul = el("ul");
+      TARGETS.filter(function (t) { return t.ring === rg.n; }).forEach(function (t) {
+        var hit = !!res.reached[t.id];
+        var li = el("li", { "class": hit ? "bad" : "ok", id: "risk-" + t.id });
+        var head = el("div", { "class": "li-head" });
+        head.appendChild(el("span", null, t.label));
+        head.appendChild(el("span", { "class": "stt" }, hit ? "✕ At risk" : "✓ Safe"));
+        li.appendChild(head);
+        li.appendChild(el("p", { "class": "li-body" }, t.impact));
+        if (hit) li.appendChild(el("p", { "class": "li-path" }, "Path: " + pathOf(res, t.id).join(" → ")));
+        ul.appendChild(li);
+      });
+      rb.appendChild(ul);
+      box.appendChild(rb);
     });
   }
 
-  function renderActions() {
-    var box = $("actions"); box.textContent = "";
-    var c = currentChar();
-    box.appendChild(el("h3", null, "What does " + c.name.toLowerCase() + " try?"));
-    c.actions.forEach(function (a, i) {
-      var b = el("button", { type: "button", "class": "act", id: "act-" + c.id + "-" + i, "aria-pressed": String(i === actIdx) });
-      b.appendChild(el("span", { "class": "n" }, String(i + 1)));
-      b.appendChild(el("span", { "class": "t" }, a.label));
-      b.addEventListener("click", function () { actIdx = i; renderActions(); renderResult(); });
-      box.appendChild(b);
-    });
+  function select(id) {
+    selected = selected === id ? null : id;
+    update(false);
   }
 
-  var ICON_OK = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M9 16.5l5 5 9-10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var ICON_BAD = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10.5 10.5l11 11M21.5 10.5l-11 11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>';
-
-  function renderResult() {
-    var box = $("result"); box.textContent = "";
-    var c = currentChar();
-    if (actIdx < 0) { box.appendChild(el("p", { "class": "muted" }, "Pick an action above to see what happens.")); return; }
-    var a = c.actions[actIdx], r = a[mode];
-    var card = el("div", { "class": "result " + (r.ok ? "ok" : "bad"), id: "result-card" });
-    var v = el("div", { "class": "verdict" });
-    v.innerHTML = r.ok ? ICON_OK : ICON_BAD;
-    v.appendChild(el("span", null, r.ok ? "Allowed" : "Blocked"));
-    card.appendChild(v);
-    var body = el("div", { "class": "res-body" });
-    body.appendChild(el("p", { "class": "asked" }, c.name + " tried: “" + a.label + "”"));
-    body.appendChild(el("p", null, r.why));
-    var need = el("div", { "class": "need" });
-    var nb = el("b", null, "Did they need this? ");
-    need.appendChild(nb);
-    need.appendChild(document.createTextNode(a.needed ? "Yes, needed for the job." : "No, so this is risky."));
-    body.appendChild(need);
-    var d = el("details", { id: "result-details" });
-    d.appendChild(el("summary", null, "Show the technical details"));
-    var t = el("div", { "class": "tech" });
-    t.appendChild(el("h4", null, "Command"));
-    var p1 = el("pre"); p1.appendChild(el("code", null, "$ " + a.cmd)); t.appendChild(p1);
-    t.appendChild(el("h4", null, "Output"));
-    var p2 = el("pre"); p2.appendChild(el("code", null, r.out)); t.appendChild(p2);
-    t.appendChild(el("h4", null, "The rule that decided it"));
-    var p3 = el("pre"); p3.appendChild(el("code", null, r.rule)); t.appendChild(p3);
-    d.appendChild(t);
-    body.appendChild(d);
-    card.appendChild(body);
-    box.appendChild(card);
-  }
-
-  function renderStory() {
-    var ol = $("story"); ol.textContent = "";
-    var stopped = 0;
-    STORY.forEach(function (s, i) {
-      var n = i + 1, cls, tag;
-      if (s.start) {
-        cls = mode === "full" ? "bad" : "";
-        tag = mode === "full" ? "Succeeded" : "Starting point (we assume this happens)";
-      } else if (mode === "full") {
-        cls = "bad"; tag = "Succeeded";
-      } else if (!stopped) {
-        stopped = n; cls = "ok"; tag = "✕ Blocked";
-      } else {
-        cls = "skip"; tag = "Never reached";
-      }
-      var li = el("li", { "class": cls, id: "story-" + n });
-      li.appendChild(el("span", { "class": "num" }, String(n)));
-      var tx = el("span", { "class": "txt" });
-      tx.appendChild(document.createTextNode(s.text));
-      tx.appendChild(el("span", { "class": "tag" }, (cls === "bad" ? "✓ " : "") + tag));
-      li.appendChild(tx);
-      ol.appendChild(li);
-    });
-    var end = $("story-end");
-    if (mode === "full") end.textContent = "All 5 steps succeed. The attacker now owns the whole account.";
-    else end.textContent = "Stopped at step " + stopped + ": " + STORY[stopped - 1].block;
-  }
-
-  function setMode(m) {
-    mode = m;
-    $("mode-full").setAttribute("aria-pressed", String(m === "full"));
-    $("mode-lp").setAttribute("aria-pressed", String(m === "lp"));
-    renderSummary(); renderResult(); renderStory();
-  }
-  $("mode-full").addEventListener("click", function () { setMode("full"); });
-  $("mode-lp").addEventListener("click", function () { setMode("lp"); });
-
-  actIdx = 0;
-  renderChars(); renderActions(); setMode("lp");
+  buildDiagram();
+  buildControls();
+  PRESETS[1].on.forEach(function (id) { state[id] = true; });
+  update(false);
 })();
 </script>
 </body>

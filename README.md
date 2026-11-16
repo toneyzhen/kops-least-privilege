@@ -1,28 +1,31 @@
-# Least Privilege Simulator
+# Permission Blast Radius
 
-An interactive webpage that explains the **principle of least privilege**:
-every person and program gets only the access it needs to do its job, and
-nothing more.
+An interactive webpage that shows the **principle of least privilege** as a
+blast radius. An attacker has broken into one app in a Kubernetes cluster on
+AWS. Switch the app's permissions on and off and watch how far the damage can
+spread.
 
 **[▶ Open the simulator](https://htmlpreview.github.io/?https://github.com/toneyzhen/kops-least-privilege/blob/main/index.html)**
 
-The example is a Kubernetes cluster running on AWS, built with
-[kOps](https://kops.sigs.k8s.io/). You don't need to know any of those tools
+You don't need to know AWS, Kubernetes or [kOps](https://kops.sigs.k8s.io/)
 to follow along. The page explains each term as it comes up.
 
 ## What you can do on the page
 
-- **Flip one switch** between "Everyone gets full access" and "Least
-  privilege" and watch the results change.
-- **Try actions as four characters:** the cluster operator, a developer, an
-  app, and an attacker who broke into the app. Each action shows whether it
-  was allowed or blocked, and why.
-- **Follow an attack** step by step and see where least privilege stops it.
-- **Open "Show the technical details"** under any result to see the real
-  command and the AWS or Kubernetes rule behind it.
+- **Flip permissions on and off.** Each one is marked "Needed for the job" or
+  "Not needed".
+- **Watch the blast radius** grow or shrink across four rings: the app, the
+  cluster, the servers, and the whole AWS account.
+- **See how permissions chain together.** Select anything at risk to see the
+  path an attacker takes to reach it. For example, reading every storage
+  bucket exposes the cluster's master keys, which give full control of the
+  cluster.
+- **Try the presets:** Least privilege, Typical setup and Full access.
+- **Open "Technical details"** under any permission to see the real AWS IAM
+  or Kubernetes rule behind it.
 
-Nothing on the page connects to AWS. The results are simulated from a
-hardened kOps setup.
+Nothing on the page connects to AWS. It is a simplified model of a kOps
+cluster.
 
 ## Running it
 
