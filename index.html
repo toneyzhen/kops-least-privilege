@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Declares that the page has its own dark theme, so browsers do not force-darken it
+     (forced dark recolors text but leaves SVG fills light, which made the diagram unreadable). -->
+<meta name="color-scheme" content="light dark">
 <title>Permission Blast Radius</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -104,6 +107,10 @@ section { margin-top: 20px; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
 header { display: block; }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.theme-btn { font: 500 0.85rem var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.theme-btn:hover { border-color: var(--accent); }
+.theme-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .intro { margin: 4px 0 0; color: var(--muted); font-size: 0.95rem; line-height: 1.45; }
 
 /* folds */
@@ -258,7 +265,10 @@ footer p { margin: 0 0 4px; }
 <div class="wrap">
 
 <header id="top">
-  <h1 id="title">Permission Blast Radius</h1>
+  <div class="title-row">
+    <h1 id="title">Permission Blast Radius</h1>
+    <button type="button" class="theme-btn" id="theme-btn">Dark mode</button>
+  </div>
   <p class="intro">An attacker broke into one app. Switch its permissions off and watch how far they can reach shrink. <a href="#glossary" id="gloss-link">What do these words mean?</a></p>
 </header>
 
@@ -711,6 +721,23 @@ footer p { margin: 0 0 4px; }
   PRESETS[1].on.forEach(function (id) { state[id] = true; });
   update(false);
   if (location.hash === "#glossary") $("glossary").open = true;
+})();
+</script>
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById("theme-btn");
+  var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function current() { return root.getAttribute("data-theme") || (mq && mq.matches ? "dark" : "light"); }
+  function label() { var dark = current() === "dark"; btn.textContent = dark ? "Light mode" : "Dark mode"; btn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode"); }
+  try { var saved = localStorage.getItem("blast-theme"); if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved); } catch (e) {}
+  btn.addEventListener("click", function () {
+    var next = current() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("blast-theme", next); } catch (e) {}
+    label();
+  });
+  if (mq && mq.addEventListener) mq.addEventListener("change", label);
+  label();
 })();
 </script>
 </body>
